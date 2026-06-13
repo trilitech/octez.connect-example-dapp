@@ -1,4 +1,4 @@
-import { SDK_VERSION } from '@airgap/beacon-sdk'
+import { SDK_VERSION } from '@tezos-x/octez.connect-dapp'
 import { ErrorHandler, Injectable } from '@angular/core'
 import { captureException, configureScope, Event, init, Scope, withScope } from '@sentry/browser'
 

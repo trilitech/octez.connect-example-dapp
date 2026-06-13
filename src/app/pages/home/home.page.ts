@@ -1,42 +1,33 @@
-import { AccountInfo, NetworkType, SDK_VERSION, TezosOperation, TezosOperationType } from '@airgap/beacon-sdk'
+import { AccountInfo, NetworkType, SDK_VERSION, TezosOperationType } from '@tezos-x/octez.connect-dapp'
 import { Component, ViewChild } from '@angular/core'
 import { ActivatedRoute } from '@angular/router'
 import { AlertController, IonContent, ToastController } from '@ionic/angular'
-import { TezosBTC } from 'airgap-coin-lib'
 import { asyncScheduler, Observable } from 'rxjs'
 import { switchMap, throttleTime } from 'rxjs/operators'
 
 import { BeaconService } from '../../services/beacon/beacon.service'
 import { ScrollService } from '../../services/scroll/scroll.service'
 
-export const getTezblockLinkForAddress: (
+export const getExplorerLinkForAddress: (
   accountInfo: AccountInfo | undefined,
   address: string
-) => Promise<string> = async (accountInfo: AccountInfo | undefined, address: string): Promise<string> => {
-  const urls: { [key in NetworkType]: string } = {
-    [NetworkType.MAINNET]: 'https://tezblock.io/account/',
-    [NetworkType.DELPHINET]: 'https://delphinet.tezblock.io/account/',
-    [NetworkType.EDONET]: 'https://edonet.tezblock.io/account/',
-    [NetworkType.CUSTOM]: 'https://delphinet.tezblock.io/account/'
+) => string = (accountInfo: AccountInfo | undefined, address: string): string => {
+  const networkType = accountInfo?.network?.type ?? NetworkType.MAINNET
+  if (networkType === NetworkType.MAINNET) {
+    return `https://tzkt.io/${address}`
   }
-  const url: string = urls[accountInfo && accountInfo.network ? accountInfo.network.type : NetworkType.MAINNET]
-
-  return `${url}${address}`
+  return `https://${networkType}.tzkt.io/${address}`
 }
 
-export const getTezblockLinkForTxHash: (
+export const getExplorerLinkForTxHash: (
   accountInfo: AccountInfo | undefined,
   txHash: string
-) => Promise<string> = async (accountInfo: AccountInfo | undefined, txHash: string): Promise<string> => {
-  const urls: { [key in NetworkType]: string } = {
-    [NetworkType.MAINNET]: 'https://tezblock.io/transaction/',
-    [NetworkType.DELPHINET]: 'https://delphinet.tezblock.io/transaction/',
-    [NetworkType.EDONET]: 'https://edonet.tezblock.io/transaction/',
-    [NetworkType.CUSTOM]: 'https://delphinet.tezblock.io/transaction/'
+) => string = (accountInfo: AccountInfo | undefined, txHash: string): string => {
+  const networkType = accountInfo?.network?.type ?? NetworkType.MAINNET
+  if (networkType === NetworkType.MAINNET) {
+    return `https://tzkt.io/${txHash}`
   }
-  const url: string = urls[accountInfo && accountInfo.network ? accountInfo.network.type : NetworkType.MAINNET]
-
-  return `${url}${txHash}`
+  return `https://${networkType}.tzkt.io/${txHash}`
 }
 
 @Component({
@@ -52,7 +43,7 @@ export class HomePage {
   public activeAccount$: Observable<AccountInfo>
   public activeAccount: AccountInfo | undefined
 
-  public selectedNetwork: string = 'mainnet'
+  public selectedNetwork: string = 'shadownet'
   public networkName: string | undefined
   public networkRpcUrl: string | undefined
 
@@ -78,10 +69,8 @@ export class HomePage {
 
   public connectedAccounts: AccountInfo[] = []
 
-  public protocol: TezosBTC = new TezosBTC()
-
-  public beaconSdkVersion: string = SDK_VERSION
-  public beaconSdkBeaconId: string | undefined
+  public sdkVersion: string = SDK_VERSION
+  public sdkBeaconId: string | undefined
 
   constructor(
     private readonly alertController: AlertController,
@@ -95,10 +84,12 @@ export class HomePage {
       this.activeAccount = activeAccount
     })
 
-    this.route.fragment.subscribe((f: string) => {
-      const element: Element | null = document.querySelector(`#${f}`)
-      if (element) {
-        element.scrollIntoView()
+    this.route.fragment.subscribe((f: string | null) => {
+      if (f) {
+        const element: Element | null = document.querySelector(`#${f}`)
+        if (element) {
+          element.scrollIntoView()
+        }
       }
     })
     this.scrollService.scroll$.subscribe((element: string) => {
@@ -107,19 +98,18 @@ export class HomePage {
 
     this.beaconService.client.beaconId
       .then((beaconId: string) => {
-        this.beaconSdkBeaconId = beaconId
+        this.sdkBeaconId = beaconId
       })
       .catch(console.error)
   }
 
   public async askForPermissions(): Promise<void> {
-    await this.beaconService.client.requestPermissions({
-      network: {
-        type: this.selectedNetwork as any,
-        name: this.networkName,
-        rpcUrl: this.networkRpcUrl
-      }
-    })
+    await this.beaconService.reinitClient(
+      this.selectedNetwork as NetworkType,
+      this.networkName,
+      this.networkRpcUrl
+    )
+    await this.beaconService.client.requestPermissions()
   }
 
   public async showConnectedAccounts(): Promise<void> {
@@ -168,14 +158,7 @@ export class HomePage {
   }
 
   public async getBalanceOfContract(): Promise<void> {
-    if (this.activeAccount && this.activeAccount.address) {
-      const balance: string = await this.protocol.getBalance(this.activeAccount.address)
-      this.contractBalance = balance
-
-      console.log('tzbtc balance', balance)
-    } else {
-      this.contractBalance = '0'
-    }
+    this.contractBalance = this.activeAccount?.address ? 'Check on explorer' : '0'
     const toast: HTMLIonToastElement = await this.toastController.create({
       message: 'Balance updated',
       position: 'bottom',
@@ -281,7 +264,7 @@ export class HomePage {
       buttons.push({
         text: 'Open Blockexplorer',
         handler: async (): Promise<void> => {
-          window.open(await getTezblockLinkForTxHash(this.activeAccount, transactionHash), '_blank')
+          window.open(getExplorerLinkForTxHash(this.activeAccount, transactionHash), '_blank')
         }
       })
     }
@@ -297,7 +280,7 @@ export class HomePage {
   }
 
   private async requestOperationWithAlert(
-    operations: Partial<TezosOperation>[],
+    operations: any[],
     _successMessage: string
   ): Promise<void> {
     if (!this.activeAccount) {

@@ -1,6 +1,6 @@
-import { AccountInfo, SDK_VERSION } from '@airgap/beacon-sdk'
+import { AccountInfo, SDK_VERSION } from '@tezos-x/octez.connect-dapp'
 import { Component, ViewChild } from '@angular/core'
-import { Storage } from '@ionic/storage'
+import { Storage } from '@ionic/storage-angular'
 import { Observable } from 'rxjs'
 
 import { HomePage } from './pages/home/home.page'

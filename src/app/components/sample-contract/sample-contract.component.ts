@@ -1,4 +1,4 @@
-import { AccountInfo, OperationResponseOutput, TezosOperationType } from '@airgap/beacon-sdk'
+import { AccountInfo, OperationResponseOutput, TezosOperationType } from '@tezos-x/octez.connect-dapp'
 import { HttpClient } from '@angular/common/http'
 import { Component } from '@angular/core'
 import { Observable } from 'rxjs'
