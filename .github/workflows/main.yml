@@ -1,65 +1,51 @@
 name: Build and Deploy
 
-on: push
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 jobs:
-  build_angular:
+  build:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - name: Cache node modules
-        uses: actions/cache@v1
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-      - name: Node 14
-        uses: actions/setup-node@v1
-        with:
-          node-version: 14.x
+          node-version: 18
+          cache: npm
 
-      - name: Prepare
-        run: npm ci
-
-      # - name: Prettier
-      #   run: npm run actions:prettier
+      - name: Install
+        run: npm ci --legacy-peer-deps
 
       - name: Build
-        run: npm run build -- --prod
+        run: npx ng build --configuration production
 
-      - name: Upload
-        uses: actions/upload-artifact@v1
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: angular_dist
           path: dist
 
-  deploy_github_pages:
-    needs: build_angular
-    if: github.ref == 'refs/heads/master'
+  deploy:
+    needs: build
     runs-on: ubuntu-latest
-
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Cache node modules
-        uses: actions/cache@v1
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-      - name: Node 14
-        uses: actions/setup-node@v1
-        with:
-          node-version: 14.x
-
-      - name: Prepare
-        run: npm ci
-
-      - name: Deploy Github Pages
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run actions:deploy
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
