@@ -38,7 +38,7 @@ export class SampleContractComponent {
   public async getState(): Promise<void> {
     const result: any = await this.http
       .get(
-        'https://tezos-carthagenet-node-1.kubernetes.papers.tech/chains/main/blocks/head/context/contracts/KT1RxKJyi48W3bZR8HErRiisXZQw19HwLGWj/storage'
+        `https://tezos-shadownet.octez.io/chains/main/blocks/head/context/contracts/${this.contractDestination}/storage`
       )
       .toPromise()
 
