@@ -3,7 +3,7 @@
 </p>
 <p>
   This allows you to set a number and a true or false flag and is deployed on
-  <strong>Carthagenet</strong>
+  <strong>Shadownet</strong>
   .
 </p>
 <ion-card class="ion-no-margin">
@@ -19,7 +19,7 @@ Flag: {{ flag }}</pre
     </ion-item>
     <ion-button (click)="getState()">Update State</ion-button>
     <a
-      href="https://you.better-call.dev/carthagenet/KT1RxKJyi48W3bZR8HErRiisXZQw19HwLGWj/storage"
+      href="https://better-call.dev/shadownet/KT1RxKJyi48W3bZR8HErRiisXZQw19HwLGWj/storage"
       target="_blank"
       rel="noopener"
     >
@@ -35,8 +35,7 @@ Flag: {{ flag }}</pre
       Change Number
     </ion-card-subtitle>
     <ion-item lines="none" class="ion-no-padding ion-padding-bottom">
-      <ion-label position="stacked">Number</ion-label>
-      <ion-input [(ngModel)]="newNumber" placeholder="7"></ion-input>
+      <ion-input label="Number" label-placement="stacked" [(ngModel)]="newNumber" placeholder="7"></ion-input>
     </ion-item>
     <ion-button (click)="setNumber()">Update Number</ion-button>
   </ion-card-content>
@@ -48,8 +47,7 @@ Flag: {{ flag }}</pre
     </ion-card-subtitle>
     The new value needs to be different to the old value.
     <ion-item lines="none" class="ion-no-padding ion-padding-bottom">
-      <ion-label>Flag</ion-label>
-      <ion-checkbox slot="end" [(ngModel)]="newFlag"></ion-checkbox>
+      <ion-checkbox slot="end" [(ngModel)]="newFlag">Flag</ion-checkbox>
     </ion-item>
     <ion-button (click)="setFlag()">Update Flag</ion-button>
   </ion-card-content>
