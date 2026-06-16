@@ -17,7 +17,7 @@ export class AppComponent {
 
   public selectedTab: string = 'wallets_dapps'
   public connectionStatus$: Observable<string>
-  public activeAccount$: Observable<AccountInfo>
+  public activeAccount$: Observable<AccountInfo | undefined>
   public beaconSdkVersion: string = SDK_VERSION
 
   constructor(
@@ -42,6 +42,7 @@ export class AppComponent {
   }
 
   public async reset(): Promise<void> {
+    await this.beaconService.whenReady()
     await this.beaconService.client.removeAllPeers()
     await this.storage.clear()
     location.reload()

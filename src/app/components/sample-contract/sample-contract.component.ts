@@ -11,7 +11,7 @@ import { ToastController } from '@ionic/angular'
   styleUrls: ['./sample-contract.component.scss']
 })
 export class SampleContractComponent {
-  public activeAccount$: Observable<AccountInfo>
+  public activeAccount$: Observable<AccountInfo | undefined>
   public activeAccount: AccountInfo | undefined
 
   public newNumber: number = 0
@@ -28,7 +28,7 @@ export class SampleContractComponent {
     private readonly toastController: ToastController
   ) {
     this.activeAccount$ = this.beaconService.activeAccount$
-    this.activeAccount$.subscribe((activeAccount: AccountInfo) => {
+    this.activeAccount$.subscribe((activeAccount: AccountInfo | undefined) => {
       this.activeAccount = activeAccount
     })
 
@@ -64,6 +64,7 @@ export class SampleContractComponent {
       throw new Error('No active account set!')
     }
 
+    await this.beaconService.whenReady()
     const response: OperationResponseOutput = await this.beaconService.client.requestOperation({
       operationDetails: [
         {
@@ -87,6 +88,7 @@ export class SampleContractComponent {
       throw new Error('No active account set!')
     }
 
+    await this.beaconService.whenReady()
     const response: OperationResponseOutput = await this.beaconService.client.requestOperation({
       operationDetails: [
         {

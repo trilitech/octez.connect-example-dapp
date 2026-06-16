@@ -1,0 +1,133 @@
+<ion-card class="test-card" [attr.data-status]="result?.status || 'idle'">
+  <ion-card-header>
+    <div class="row">
+      <ion-card-title>{{ def.title }}</ion-card-title>
+      <div class="badges">
+        <ion-chip outline color="medium" class="scope-chip">{{ scopeChipLabel() }}</ion-chip>
+        <ion-badge [color]="statusBadgeColor()">
+          <ion-spinner *ngIf="result?.status === 'running'" name="dots"></ion-spinner>
+          <span *ngIf="result?.status !== 'running'">{{ result?.status || 'idle' }}</span>
+        </ion-badge>
+      </div>
+    </div>
+    <ion-card-subtitle *ngIf="def.description">{{ def.description }}</ion-card-subtitle>
+    <ion-text *ngIf="!def.enabled && def.disabledReason" color="medium" class="disabled-reason">
+      <small>{{ def.disabledReason }}</small>
+    </ion-text>
+  </ion-card-header>
+
+  <ion-card-content>
+    <div *ngIf="def.inputs.length > 0" class="inputs">
+      <ng-container *ngFor="let input of def.inputs">
+        <ion-item lines="full">
+          <ion-label position="stacked">
+            {{ input.label }}
+            <ion-text color="medium" *ngIf="input.help"><small> — {{ input.help }}</small></ion-text>
+          </ion-label>
+
+          <ion-input
+            *ngIf="input.type === 'text'"
+            [(ngModel)]="inputs[input.key]"
+            (ionChange)="onInputChange(input.key)"
+            [placeholder]="input.placeholder || ''"
+          ></ion-input>
+
+          <ion-input
+            *ngIf="input.type === 'number'"
+            type="number"
+            [(ngModel)]="inputs[input.key]"
+            (ionChange)="onInputChange(input.key)"
+            [placeholder]="input.placeholder || ''"
+          ></ion-input>
+
+          <ion-toggle
+            *ngIf="input.type === 'boolean'"
+            [(ngModel)]="inputs[input.key]"
+            (ionChange)="onInputChange(input.key)"
+          ></ion-toggle>
+
+          <ion-textarea
+            *ngIf="input.type === 'textarea' || input.type === 'json'"
+            [(ngModel)]="inputs[input.key]"
+            (ionChange)="onInputChange(input.key)"
+            [placeholder]="input.placeholder || ''"
+            [autoGrow]="true"
+            rows="4"
+          ></ion-textarea>
+        </ion-item>
+        <ion-text
+          *ngIf="missingNetworkDefaultHint(input.key) as hint"
+          color="warning"
+          class="default-hint"
+        >
+          <small>{{ hint }}</small>
+        </ion-text>
+      </ng-container>
+    </div>
+
+    <div class="actions">
+      <ion-button
+        size="small"
+        [disabled]="!canRun()"
+        (click)="run()"
+      >
+        Run
+      </ion-button>
+      <ion-text *ngIf="!canRun() && runDisabledReason() as reason" color="medium">
+        <small>{{ reason }}</small>
+      </ion-text>
+      <ion-button
+        *ngIf="result"
+        size="small"
+        fill="clear"
+        color="medium"
+        (click)="reset()"
+      >
+        Reset
+      </ion-button>
+    </div>
+
+    <div *ngIf="result && result.status !== 'idle'" class="result">
+      <div class="result-meta">
+        <ion-text color="medium">
+          <small>
+            <span *ngIf="result.durationMs > 0">{{ result.durationMs }} ms</span>
+          </small>
+        </ion-text>
+        <ion-button size="small" fill="clear" color="medium" (click)="copyResult()">Copy</ion-button>
+      </div>
+
+      <p *ngIf="result.summary" class="summary">{{ result.summary }}</p>
+
+      <p *ngIf="result.txHash" class="tx-hash">
+        op:
+        <a *ngIf="result.explorerUrl" [href]="result.explorerUrl" target="_blank" rel="noopener">
+          {{ result.txHash }}
+        </a>
+        <span *ngIf="!result.explorerUrl">{{ result.txHash }}</span>
+      </p>
+
+      <p *ngIf="result.signature" class="signature">
+        signature: <code>{{ result.signature }}</code>
+      </p>
+
+      <ion-text *ngIf="result.error" color="danger" class="error">
+        <p><strong>Error:</strong> {{ result.error }}</p>
+      </ion-text>
+
+      <div *ngIf="result.request !== undefined" class="json-block">
+        <ion-button size="small" fill="clear" (click)="showRequest = !showRequest">
+          {{ showRequest ? 'Hide' : 'Show' }} request
+        </ion-button>
+        <pre *ngIf="showRequest">{{ result.request | json }}</pre>
+      </div>
+
+      <div *ngIf="result.response !== undefined" class="json-block">
+        <ion-button size="small" fill="clear" (click)="showResponse = !showResponse">
+          {{ showResponse ? 'Hide' : 'Show' }} response
+        </ion-button>
+        <pre *ngIf="showResponse">{{ result.response | json }}</pre>
+      </div>
+    </div>
+  </ion-card-content>
+</ion-card>

@@ -1,0 +1,47 @@
+:host {
+  display: block;
+}
+
+.wallet-control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+
+  .net-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+
+    .net-select {
+      flex: 1 1 220px;
+      max-width: 320px;
+      --background: transparent;
+      --padding-start: 0;
+    }
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .address-chip ion-label {
+    font-family: var(--ion-font-family-mono, monospace);
+    font-size: 0.78rem;
+    max-width: 30ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .status {
+    margin-left: auto;
+  }
+
+  .env-summary {
+    font-size: 0.78rem;
+  }
+}

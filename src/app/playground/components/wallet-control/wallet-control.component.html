@@ -1,0 +1,73 @@
+<div class="wallet-control">
+  <div class="net-row">
+    <ion-item lines="none" class="net-select">
+      <ion-label position="stacked">Network</ion-label>
+      <ion-select
+        interface="popover"
+        [value]="selectedNetwork"
+        (ionChange)="onNetworkChange($any($event.detail.value))"
+        [disabled]="switching"
+      >
+        <ion-select-option *ngFor="let n of networks" [value]="n.name">
+          {{ n.name }}<ng-container *ngIf="n.custom"> · custom</ng-container>
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+    <ion-button
+      size="small"
+      fill="outline"
+      (click)="openAddCustomNetwork()"
+      [disabled]="switching"
+      title="Add a custom network"
+    >
+      + Add network
+    </ion-button>
+    <ion-button
+      *ngIf="hasCustomNetworks"
+      size="small"
+      fill="clear"
+      color="medium"
+      (click)="openManageCustomNetworks()"
+      [disabled]="switching"
+      title="Manage custom networks"
+    >
+      Manage
+    </ion-button>
+  </div>
+
+  <div class="actions">
+    <ion-button
+      *ngIf="!account"
+      size="small"
+      (click)="connect()"
+      [disabled]="connecting || switching"
+    >
+      <ion-spinner *ngIf="connecting" name="dots" slot="start"></ion-spinner>
+      Connect Wallet
+    </ion-button>
+
+    <ion-chip *ngIf="account" color="success" outline="true" class="address-chip">
+      <ion-label>{{ account.address }}</ion-label>
+    </ion-chip>
+
+    <ion-button
+      *ngIf="account"
+      size="small"
+      fill="outline"
+      color="medium"
+      (click)="disconnect()"
+    >
+      Disconnect
+    </ion-button>
+
+    <ion-text color="medium" class="status">
+      <small>{{ connectionStatus }}</small>
+    </ion-text>
+  </div>
+
+  <div class="env-summary">
+    <ion-text color="medium">
+      <small>RPC: {{ networkRpc }} &nbsp;·&nbsp; Indexer: {{ networkIndexer }}</small>
+    </ion-text>
+  </div>
+</div>
