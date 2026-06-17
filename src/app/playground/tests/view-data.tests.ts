@@ -99,4 +99,47 @@ const contractEventsPoll: TestDefinition = {
   }
 }
 
-export const VIEW_DATA_TESTS: TestDefinition[] = [accountBalance, blockInspect, contractEventsPoll]
+const tzip16Metadata: TestDefinition = {
+  id: 'view.tzip16-metadata',
+  title: 'TZIP-16 metadata',
+  category: 'view-data',
+  description:
+    'Resolves a contract’s TZIP-16 metadata (the indexer follows the %metadata big-map URI — tezos-storage:// or https://) and summarizes name / description / authors.',
+  requiredScope: 'rpc-read',
+  safeForRunAll: true,
+  enabled: true,
+  inputs: [
+    {
+      key: 'contract',
+      label: 'Contract (KT1)',
+      type: 'text',
+      placeholder: 'KT1...',
+      defaultFromNetwork: 'counter'
+    }
+  ],
+  async run(ctx) {
+    const kt = String(ctx.inputs['contract'] ?? '').trim()
+    if (!kt) throw new Error('contract address is required')
+    const contract = (await ctx.indexer.getContract(kt)) as {
+      metadata?: { name?: string; description?: string; authors?: string[] }
+    }
+    const meta = contract?.metadata
+    if (!meta) {
+      throw new Error('no TZIP-16 metadata indexed for this contract')
+    }
+    return {
+      request: { contract: kt, source: 'indexer (TZIP-16 resolved)' },
+      response: meta,
+      summary: `${meta.name ?? '(no name)'} — ${meta.description ?? '(no description)'}${
+        meta.authors?.length ? ` — by ${meta.authors.join(', ')}` : ''
+      }`
+    }
+  }
+}
+
+export const VIEW_DATA_TESTS: TestDefinition[] = [
+  accountBalance,
+  blockInspect,
+  contractEventsPoll,
+  tzip16Metadata
+]

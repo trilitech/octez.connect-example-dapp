@@ -1,4 +1,4 @@
-import { AccountInfo, OperationResponseOutput, TezosOperationType } from '@tezos-x/octez.connect-dapp'
+import type { AccountInfo, OperationResponseOutput } from '@tezos-x/octez.connect-dapp'
 import { HttpClient } from '@angular/common/http'
 import { Component } from '@angular/core'
 import { Observable } from 'rxjs'
@@ -68,7 +68,7 @@ export class SampleContractComponent {
     const response: OperationResponseOutput = await this.beaconService.client.requestOperation({
       operationDetails: [
         {
-          kind: TezosOperationType.TRANSACTION,
+          kind: 'transaction',
           amount: '0',
           destination: this.contractDestination,
           parameters: {
@@ -79,7 +79,7 @@ export class SampleContractComponent {
           }
         }
       ]
-    })
+    } as any)
     console.log(response)
   }
 
@@ -92,7 +92,7 @@ export class SampleContractComponent {
     const response: OperationResponseOutput = await this.beaconService.client.requestOperation({
       operationDetails: [
         {
-          kind: TezosOperationType.TRANSACTION,
+          kind: 'transaction',
           amount: '0',
           destination: this.contractDestination,
           parameters: {
@@ -103,7 +103,7 @@ export class SampleContractComponent {
           }
         }
       ]
-    })
+    } as any)
     console.log(response)
   }
 }

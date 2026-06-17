@@ -1,6 +1,17 @@
-import { SDK_VERSION } from '@tezos-x/octez.connect-dapp'
 import { ErrorHandler, Injectable } from '@angular/core'
 import { captureException, configureScope, Event, init, Scope, withScope } from '@sentry/browser'
+
+// The active SDK version is loaded at runtime (SdkLoaderService) and persisted
+// under this localStorage key. Read it here at error time instead of statically
+// importing `SDK_VERSION`, which would bind to the bundled package version.
+const SDK_VERSION_STORAGE_KEY = 'octez.connect.version'
+function currentSdkVersion(): string {
+  try {
+    return window.localStorage.getItem(SDK_VERSION_STORAGE_KEY) ?? 'bundled'
+  } catch {
+    return 'bundled'
+  }
+}
 
 init({
   dsn: 'https://bce0d14340384d60823b5ed9494b6d7d@sentry.papers.tech/172',
@@ -21,7 +32,7 @@ const handleErrorSentry: (category?: ErrorCategory) => (error: any) => void = (
     try {
       withScope((scope: Scope) => {
         scope.setTag(ERROR_CATEGORY_TAG, category)
-        scope.setTag(SDK_VERSION_TAG, SDK_VERSION)
+        scope.setTag(SDK_VERSION_TAG, currentSdkVersion())
         const eventId: string = captureException(error.originalError || error)
         // tslint:disable-next-line
         console.debug(`[sentry](${category}) - ${eventId}`)

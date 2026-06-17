@@ -11,6 +11,8 @@ import { RouterModule, Routes } from '@angular/router'
 import { IonicModule } from '@ionic/angular'
 
 import { PlaygroundPage } from './playground.page'
+import { ContractExplorerComponent } from './components/contract-explorer/contract-explorer.component'
+import { RunHistoryComponent } from './components/run-history/run-history.component'
 import { TestCardComponent } from './components/test-card/test-card.component'
 import { WalletControlComponent } from './components/wallet-control/wallet-control.component'
 
@@ -18,6 +20,12 @@ const routes: Routes = [{ path: '', component: PlaygroundPage }]
 
 @NgModule({
   imports: [CommonModule, FormsModule, IonicModule, RouterModule.forChild(routes)],
-  declarations: [PlaygroundPage, TestCardComponent, WalletControlComponent]
+  declarations: [
+    PlaygroundPage,
+    TestCardComponent,
+    WalletControlComponent,
+    RunHistoryComponent,
+    ContractExplorerComponent
+  ]
 })
 export class PlaygroundModule {}

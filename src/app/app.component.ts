@@ -1,4 +1,4 @@
-import { AccountInfo, SDK_VERSION } from '@tezos-x/octez.connect-dapp'
+import type { AccountInfo } from '@tezos-x/octez.connect-dapp'
 import { Component, ViewChild } from '@angular/core'
 import { Storage } from '@ionic/storage-angular'
 import { Observable } from 'rxjs'
@@ -6,6 +6,7 @@ import { Observable } from 'rxjs'
 import { HomePage } from './pages/home/home.page'
 import { BeaconService } from './services/beacon/beacon.service'
 import { ScrollService } from './services/scroll/scroll.service'
+import { SdkLoaderService } from './playground/services/sdk-loader.service'
 
 @Component({
   selector: 'app-root',
@@ -18,18 +19,31 @@ export class AppComponent {
   public selectedTab: string = 'wallets_dapps'
   public connectionStatus$: Observable<string>
   public activeAccount$: Observable<AccountInfo | undefined>
-  public beaconSdkVersion: string = SDK_VERSION
+  // Sourced from the runtime-loaded SDK (SdkLoaderService) rather than a static
+  // `SDK_VERSION` import, so the displayed version reflects the actually-loaded
+  // SDK and no fixed-version runtime binding is created.
+  public beaconSdkVersion: string
 
   constructor(
     private readonly beaconService: BeaconService,
     private readonly scrollService: ScrollService,
-    private readonly storage: Storage
+    private readonly storage: Storage,
+    private readonly sdkLoader: SdkLoaderService
   ) {
+    this.beaconSdkVersion = this.sdkLoader.getActiveVersion().version
     this.connectionStatus$ = this.beaconService.connectionStatus$
     this.activeAccount$ = this.beaconService.activeAccount$
     this.scrollService.currentSelectedTab$.subscribe((currentTab: string) => {
       this.selectedTab = currentTab
     })
+    // Refresh once the SDK has finished loading (version may resolve to the
+    // bundled fallback or a CDN-loaded version).
+    this.beaconService
+      .whenReady()
+      .then(() => {
+        this.beaconSdkVersion = this.sdkLoader.getActiveVersion().version
+      })
+      .catch(() => undefined)
   }
 
   public scrollTo(element: string): void {

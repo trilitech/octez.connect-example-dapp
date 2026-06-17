@@ -45,6 +45,9 @@ export interface TestRunOutput {
   txHash?: string
   signature?: string
   summary?: string
+  // An address produced by the operation (e.g. an originated KT1). The runner
+  // derives an explorer link from the active NetworkConfig at record time.
+  originatedAddress?: string
 }
 
 export interface TestDefinition {
@@ -74,6 +77,8 @@ export interface TestResult {
   signature?: string
   summary?: string
   explorerUrl?: string
+  originatedAddress?: string
+  originatedAddressUrl?: string
   error?: string
 }
 

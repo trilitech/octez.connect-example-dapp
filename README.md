@@ -27,6 +27,17 @@ $ ionic serve
 
 If you discover a security vulnerability within this application, please send an e-mail to hi@airgap.it. All security vulnerabilities will be promptly addressed.
 
+## Playground state (debugging)
+
+The test playground persists a little state in `localStorage`:
+
+- `octez.connect.run-history` — JSON-stringified numbered run history (≤ 50 runs).
+- `octez.connect.version` — the selected SDK version to load.
+- `octez.connect.network` — the selected network.
+- `octez.connect.custom-networks` — user-added custom networks.
+
+Clear these keys in DevTools (Application → Local Storage) to reset the playground.
+
 ## Contributing
 
 - If you find any bugs, submit an [issue](../../issues) or open [pull-request](../../pulls), helping us catch and fix them.

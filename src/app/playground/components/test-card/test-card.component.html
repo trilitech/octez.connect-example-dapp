@@ -107,6 +107,19 @@
         <span *ngIf="!result.explorerUrl">{{ result.txHash }}</span>
       </p>
 
+      <p *ngIf="result.originatedAddress" class="tx-hash">
+        originated:
+        <a
+          *ngIf="result.originatedAddressUrl"
+          [href]="result.originatedAddressUrl"
+          target="_blank"
+          rel="noopener"
+        >
+          {{ result.originatedAddress }}
+        </a>
+        <span *ngIf="!result.originatedAddressUrl">{{ result.originatedAddress }}</span>
+      </p>
+
       <p *ngIf="result.signature" class="signature">
         signature: <code>{{ result.signature }}</code>
       </p>

@@ -1,0 +1,23 @@
+:host {
+  display: block;
+}
+
+.contract-explorer {
+  .ce-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.75rem 0;
+    flex-wrap: wrap;
+  }
+  .ce-error {
+    display: block;
+    margin-top: 0.5rem;
+  }
+  .ce-tx {
+    margin-top: 0.5rem;
+    a {
+      word-break: break-all;
+    }
+  }
+}

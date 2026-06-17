@@ -6,6 +6,12 @@ import { Subscription } from 'rxjs'
 import { BeaconService } from '../../../services/beacon/beacon.service'
 import { NetworkConfig, NetworkName } from '../../network.config'
 import { NetworkService } from '../../services/network.service'
+import {
+  ActiveVersion,
+  SdkLoaderService,
+  SUPPORTED_VERSIONS
+} from '../../services/sdk-loader.service'
+import { TestRunnerService } from '../../services/test-runner.service'
 
 @Component({
   selector: 'pg-wallet-control',
@@ -24,16 +30,39 @@ export class WalletControlComponent implements OnInit, OnDestroy {
   public switching = false
   public connecting = false
 
+  // Mirrors TestRunnerService.inFlightRunAll$ for disabling the Run-all buttons.
+  public inFlightRunAll: 'safe' | 'full' | null = null
+
+  // SDK version switcher state.
+  public readonly supportedVersions = SUPPORTED_VERSIONS
+  public readonly customVersionOption = 'custom'
+  public activeVersion: ActiveVersion
+  public selectedVersion: string
+  public showCustomVersion = false
+  public customVersion = ''
+
   private readonly subs = new Subscription()
 
   constructor(
     private readonly beaconService: BeaconService,
     private readonly networkService: NetworkService,
+    private readonly testRunner: TestRunnerService,
+    private readonly sdkLoader: SdkLoaderService,
     private readonly alertController: AlertController,
     private readonly actionSheetController: ActionSheetController,
     private readonly toastController: ToastController
   ) {
     this.activeNetwork = this.networkService.getActive()
+    this.activeVersion = this.sdkLoader.getActiveVersion()
+    // Reflect the running version in the dropdown; an unknown (custom) version
+    // selects the "Other" option and pre-fills the free-form field.
+    if (SUPPORTED_VERSIONS.includes(this.activeVersion.version)) {
+      this.selectedVersion = this.activeVersion.version
+    } else {
+      this.selectedVersion = this.customVersionOption
+      this.showCustomVersion = true
+      this.customVersion = this.activeVersion.version
+    }
   }
 
   public ngOnInit(): void {
@@ -59,6 +88,40 @@ export class WalletControlComponent implements OnInit, OnDestroy {
         this.selectedNetwork = cfg.name
       })
     )
+    this.subs.add(
+      this.testRunner.inFlightRunAll$.subscribe((v) => {
+        this.inFlightRunAll = v
+      })
+    )
+  }
+
+  public runAllSafe(): void {
+    this.testRunner.runAllSafe().catch((err) => console.error('runAllSafe failed', err))
+  }
+
+  public runAllFull(): void {
+    this.testRunner.runAllFull().catch((err) => console.error('runAllFull failed', err))
+  }
+
+  public onSdkVersionChange(value: string): void {
+    if (value === this.customVersionOption) {
+      this.showCustomVersion = true
+      return
+    }
+    this.showCustomVersion = false
+    if (value && value !== this.activeVersion.version) {
+      // Persists the choice and reloads so the playground boots against it.
+      this.sdkLoader.setVersion(value)
+    }
+  }
+
+  public applyCustomVersion(): void {
+    const v = this.customVersion.trim()
+    if (!v) {
+      this.toast('Enter a version (e.g., 5.0.0-beta.6).').catch(console.error)
+      return
+    }
+    this.sdkLoader.setVersion(v)
   }
 
   public ngOnDestroy(): void {
