@@ -1,5 +1,4 @@
-// FA2 token tests. transfer / mint / burn require a wallet; balance-read is an
-// RPC-only safe-for-run-all storage read (FR-031, FR-035).
+// FA2 token tests. transfer / mint / burn require a wallet.
 
 import { TestDefinition } from './test-types'
 
@@ -28,7 +27,6 @@ const fa2Transfer: TestDefinition = {
   category: 'tokens',
   description: 'Calls the FA2 `transfer` entrypoint to move tokens from the active account.',
   requiredScope: 'octez-connect',
-  safeForRunAll: false,
   enabled: true,
   inputs: [
     { key: 'contract', label: 'FA2 contract (KT1)', type: 'text', defaultFromNetwork: 'fa2-transfer', placeholder: 'KT1...' },
@@ -63,7 +61,6 @@ function fa2EntrypointWithJson(id: string, title: string, entrypoint: 'mint' | '
     category: 'tokens',
     description: `Calls the FA2 \`${entrypoint}\` entrypoint with a contract-specific Micheline parameter.`,
     requiredScope: 'octez-connect',
-    safeForRunAll: false,
     enabled: true,
     inputs: [
       { key: 'contract', label: 'FA2 contract (KT1)', type: 'text', defaultFromNetwork: 'fa2-transfer', placeholder: 'KT1...' },
@@ -88,30 +85,8 @@ function fa2EntrypointWithJson(id: string, title: string, entrypoint: 'mint' | '
   }
 }
 
-const fa2BalanceRead: TestDefinition = {
-  id: 'tokens.fa2-balance-read',
-  title: 'FA2 balance read',
-  category: 'tokens',
-  description:
-    'Reads the FA2 contract storage via RPC (the ledger big-map lives here). Use the big-map id from the storage to look up a specific balance.',
-  requiredScope: 'rpc-read',
-  safeForRunAll: true,
-  enabled: true,
-  inputs: [
-    { key: 'contract', label: 'FA2 contract (KT1)', type: 'text', defaultFromNetwork: 'fa2-balance', placeholder: 'KT1...' }
-  ],
-  async run(ctx) {
-    const kt = String(ctx.inputs['contract'] ?? '').trim()
-    if (!kt) throw new Error('FA2 contract address is required')
-    const path = `/chains/main/blocks/head/context/contracts/${encodeURIComponent(kt)}/storage`
-    const response = await ctx.rpc.get<unknown>(path)
-    return { request: { url: ctx.network.rpc + path }, response, summary: `Storage of ${kt} read (locate the ledger big-map id within)` }
-  }
-}
-
 export const TOKENS_TESTS: TestDefinition[] = [
   fa2Transfer,
   fa2EntrypointWithJson('tokens.fa2-mint', 'FA2 mint', 'mint'),
-  fa2EntrypointWithJson('tokens.fa2-burn', 'FA2 burn', 'burn'),
-  fa2BalanceRead
+  fa2EntrypointWithJson('tokens.fa2-burn', 'FA2 burn', 'burn')
 ]

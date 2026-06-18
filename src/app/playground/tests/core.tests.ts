@@ -15,7 +15,6 @@ const sendTez: TestDefinition = {
   category: 'core',
   description: 'Sends a tiny amount of tez to a chosen destination via the active wallet.',
   requiredScope: 'octez-connect',
-  safeForRunAll: false,
   enabled: true,
   inputs: [
     {
@@ -55,7 +54,6 @@ const batch: TestDefinition = {
   category: 'core',
   description: 'Submits two transactions in a single batch request to the wallet.',
   requiredScope: 'octez-connect',
-  safeForRunAll: false,
   enabled: true,
   inputs: [
     {
@@ -95,7 +93,6 @@ const contractCall: TestDefinition = {
   description:
     'Calls increment / decrement / reset on a counter contract. Default Shadownet address: KT1S4JeGENf157Ag8RTyUfHujeUg2A32x4VA.',
   requiredScope: 'octez-connect',
-  safeForRunAll: false,
   enabled: true,
   inputs: [
     {

@@ -13,7 +13,7 @@ import { ContractRole, NetworkConfig } from '../network.config'
 import { IndexerService } from '../services/indexer.service'
 import { RpcService } from '../services/rpc.service'
 
-export type TestCategory = 'core' | 'staking' | 'contracts' | 'crypto' | 'tokens' | 'view-data'
+export type TestCategory = 'core' | 'staking' | 'contracts' | 'crypto' | 'tokens'
 export type RequiredScope = 'octez-connect' | 'rpc-read' | 'both' | 'none'
 export type TestStatus = 'idle' | 'running' | 'queued' | 'success' | 'error'
 export type InputType = 'text' | 'number' | 'boolean' | 'textarea' | 'json'
@@ -56,7 +56,6 @@ export interface TestDefinition {
   category: TestCategory
   description: string
   requiredScope: RequiredScope
-  safeForRunAll: boolean
   enabled: boolean
   disabledReason?: string
   inputs: TestInput[]
@@ -84,7 +83,10 @@ export interface TestResult {
 
 export interface PlaygroundRun {
   runNumber: number
-  runType: 'safe' | 'full'
+  // Legacy-tolerant: pre-002 runs persisted 'safe' | 'full'. New runs no longer
+  // distinguish a run type (the safe-run mode was removed), so this is optional
+  // and consumers must not assume a specific value (002 FR-006).
+  runType?: string
   startedAt: string
   endedAt: string
   sdkVersion: string

@@ -8,6 +8,55 @@ import { NetworkConfig } from '../../network.config'
 import { EntrypointDescriptor, IndexerService } from '../../services/indexer.service'
 import { NetworkService } from '../../services/network.service'
 
+// Build an editable Michelson *value* skeleton from an entrypoint parameter
+// *type* (Micheline). The indexer's `jsonParameterSchema` is a type descriptor
+// (e.g. {"schema:int":"int"}), NOT a value — seeding the parameter box with it
+// makes the wallet reject the op ("Invalid Michelson value … unable to encode").
+// This produces a valid starting value the user can edit before invoking.
+function michelineTypeToValueTemplate(type: unknown): unknown {
+  if (!type || typeof type !== 'object' || Array.isArray(type)) return { prim: 'Unit' }
+  const t = type as { prim?: string; args?: unknown[] }
+  const args = Array.isArray(t.args) ? t.args : []
+  switch (t.prim) {
+    case 'int':
+    case 'nat':
+    case 'mutez':
+      return { int: '0' }
+    case 'string':
+    case 'key':
+    case 'key_hash':
+    case 'address':
+    case 'signature':
+    case 'chain_id':
+    case 'timestamp':
+      return { string: '' }
+    case 'bytes':
+    case 'bls12_381_g1':
+    case 'bls12_381_g2':
+    case 'bls12_381_fr':
+      return { bytes: '' }
+    case 'bool':
+      return { prim: 'False' }
+    case 'unit':
+      return { prim: 'Unit' }
+    case 'option':
+      return { prim: 'None' }
+    case 'list':
+    case 'set':
+    case 'map':
+    case 'big_map':
+    case 'lambda':
+      return []
+    case 'pair':
+      return { prim: 'Pair', args: args.map(michelineTypeToValueTemplate) }
+    case 'or':
+      // Default to the Left branch; the user switches to Right if needed.
+      return { prim: 'Left', args: [michelineTypeToValueTemplate(args[0])] }
+    default:
+      return { prim: 'Unit' }
+  }
+}
+
 @Component({
   selector: 'pg-contract-explorer',
   templateUrl: './contract-explorer.component.html',
@@ -92,7 +141,10 @@ export class ContractExplorerComponent implements OnInit, OnDestroy {
       this.parameterJson = ''
       return
     }
-    const seed = ep.jsonParameterSchema ?? ep.rawMicheline ?? {}
+    // Seed with a Michelson *value* skeleton derived from the parameter *type*
+    // (rawMicheline). Never seed the raw type/schema — the SDK can't encode it.
+    const seed =
+      ep.rawMicheline != null ? michelineTypeToValueTemplate(ep.rawMicheline) : { prim: 'Unit' }
     this.parameterJson = JSON.stringify(seed, null, 2)
   }
 

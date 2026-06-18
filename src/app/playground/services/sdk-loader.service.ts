@@ -1,5 +1,5 @@
 // Dynamically loads `@tezos-x/octez.connect-dapp` at boot:
-//  - Reads localStorage['octez.connect.version'] (default '4.8.5').
+//  - Reads localStorage['octez.connect.version'] (default '4.8.6').
 //  - Races a bundler-opaque dynamic import (`new Function('u','return import(u)')`)
 //    against a 10-second timeout (per spec FR-052 + research §R1).
 //  - On error or timeout, falls back to the statically bundled package and surfaces
@@ -10,10 +10,11 @@ import { Injectable } from '@angular/core'
 import { ToastController } from '@ionic/angular'
 
 const STORAGE_KEY = 'octez.connect.version'
-const DEFAULT_VERSION = '4.8.5'
+const DEFAULT_VERSION = '4.8.6'
 const CDN_TIMEOUT_MS = 10_000
 
 export const SUPPORTED_VERSIONS: readonly string[] = [
+  '4.8.6',
   '4.8.5',
   '5.0.0-beta.6',
   '5.0.0-beta.5',

@@ -59,7 +59,8 @@ export class ReportExportService {
     lines.push('| Field | Value |')
     lines.push('|-------|-------|')
     lines.push(`| Generated at | ${new Date().toISOString()} |`)
-    lines.push(`| Run type | ${run.runType} |`)
+    // Legacy runs (pre-002) carried a 'safe' | 'full' run type; new runs don't.
+    if (run.runType) lines.push(`| Run type | ${run.runType} |`)
     lines.push(`| Network | ${network.name} |`)
     lines.push(`| RPC URL | ${network.rpc} |`)
     lines.push(`| Indexer API | ${network.api} |`)

@@ -32,7 +32,6 @@ const signMicheline: TestDefinition = {
   description:
     'Signs a UTF-8 message framed as a micheline-packed string (05 01 <len> <utf8 hex>).',
   requiredScope: 'octez-connect',
-  safeForRunAll: false,
   enabled: true,
   inputs: [{ key: 'message', label: 'Message', type: 'text', default: 'test' }],
   run: (ctx) => signWith(ctx, 'micheline')
@@ -45,7 +44,6 @@ const signRaw: TestDefinition = {
   description:
     'Signs a UTF-8 message framed identically to MICHELINE but with signingType="raw".',
   requiredScope: 'octez-connect',
-  safeForRunAll: false,
   enabled: true,
   inputs: [{ key: 'message', label: 'Message', type: 'text', default: 'test' }],
   run: (ctx) => signWith(ctx, 'raw')
@@ -58,7 +56,6 @@ const signTz5: TestDefinition = {
   description:
     'Signs a payload from a tz5 (BLS) active account. Protocol-U is merged into both Mainnet and Shadownet (2026-06-15), so any network works as long as the active account is a tz5 address.',
   requiredScope: 'octez-connect',
-  safeForRunAll: false,
   enabled: true,
   inputs: [{ key: 'message', label: 'Message', type: 'text', default: 'tz5-bls-test' }],
   async run(ctx) {

@@ -5,7 +5,6 @@ import { ReportExportService } from './report-export.service'
 function shadownetRun(hash: string): PlaygroundRun {
   return {
     runNumber: 1,
-    runType: 'safe',
     startedAt: '2026-06-17T00:00:00.000Z',
     endedAt: '2026-06-17T00:00:01.000Z',
     sdkVersion: '4.8.5',

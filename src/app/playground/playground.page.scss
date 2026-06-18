@@ -6,6 +6,10 @@
 .playground-body {
   max-width: 1100px;
   margin: 0 auto;
+  // The tall wallet-control toolbar in the header offsets ion-content's scroll
+  // extent; without extra bottom space the final card (Finalize unstake) and the
+  // run-history below it can't be scrolled fully into view.
+  padding-bottom: 8rem;
 }
 
 .cat-count {

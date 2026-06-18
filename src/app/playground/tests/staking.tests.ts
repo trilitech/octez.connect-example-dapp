@@ -12,7 +12,6 @@ const setDelegate: TestDefinition = {
   category: 'staking',
   description: 'Delegates the active account to a chosen baker.',
   requiredScope: 'octez-connect',
-  safeForRunAll: false,
   enabled: true,
   inputs: [{ key: 'delegate', label: 'Baker (tz1/tz2/tz3)', type: 'text', placeholder: 'tz1...' }],
   async run(ctx) {
@@ -33,7 +32,6 @@ const removeDelegate: TestDefinition = {
   category: 'staking',
   description: 'Removes the active account’s delegation (undelegate).',
   requiredScope: 'octez-connect',
-  safeForRunAll: false,
   enabled: true,
   inputs: [],
   async run(ctx) {
@@ -58,7 +56,6 @@ function selfPseudoOp(
     category: 'staking',
     description: `Submits a ${entrypoint} pseudo-operation to the active account’s own address.`,
     requiredScope: 'octez-connect',
-    safeForRunAll: false,
     enabled: true,
     inputs: withAmount ? [{ key: 'amount', label: 'Amount (mutez)', type: 'number', default: 1 }] : [],
     async run(ctx) {
