@@ -1,0 +1,123 @@
+<div class="wallet-control">
+  <div class="net-row">
+    <ion-item lines="none" class="net-select">
+      <ion-label position="stacked">Network</ion-label>
+      <ion-select
+        interface="popover"
+        [value]="selectedNetwork"
+        (ionChange)="onNetworkChange($any($event.detail.value))"
+        [disabled]="switching"
+      >
+        <ion-select-option *ngFor="let n of networks" [value]="n.name">
+          {{ n.name }}<ng-container *ngIf="n.custom"> · custom</ng-container>
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+    <ion-button
+      size="small"
+      fill="outline"
+      (click)="openAddCustomNetwork()"
+      [disabled]="switching"
+      title="Add a custom network"
+    >
+      + Add network
+    </ion-button>
+    <ion-button
+      *ngIf="hasCustomNetworks"
+      size="small"
+      fill="clear"
+      color="medium"
+      (click)="openManageCustomNetworks()"
+      [disabled]="switching"
+      title="Manage custom networks"
+    >
+      Manage
+    </ion-button>
+  </div>
+
+  <div class="actions">
+    <ion-button
+      *ngIf="!account"
+      size="small"
+      (click)="connect()"
+      [disabled]="connecting || switching"
+    >
+      <ion-spinner *ngIf="connecting" name="dots" slot="start"></ion-spinner>
+      Connect Wallet
+    </ion-button>
+
+    <ion-chip *ngIf="account" color="success" outline="true" class="address-chip">
+      <ion-label>{{ account.address }}</ion-label>
+    </ion-chip>
+
+    <ion-button
+      *ngIf="account"
+      size="small"
+      fill="outline"
+      color="medium"
+      (click)="disconnect()"
+    >
+      Disconnect
+    </ion-button>
+
+    <ion-text color="medium" class="status">
+      <small>{{ connectionStatus }}</small>
+    </ion-text>
+  </div>
+
+  <div class="run-all">
+    <ion-button
+      size="small"
+      fill="solid"
+      color="secondary"
+      (click)="runAllSafe()"
+      [disabled]="inFlightRunAll !== null || switching"
+    >
+      <ion-spinner *ngIf="inFlightRunAll === 'safe'" name="dots" slot="start"></ion-spinner>
+      Run all (safe)
+    </ion-button>
+    <ion-button
+      size="small"
+      fill="outline"
+      color="danger"
+      (click)="runAllFull()"
+      [disabled]="inFlightRunAll !== null || switching"
+    >
+      <ion-spinner *ngIf="inFlightRunAll === 'full'" name="dots" slot="start"></ion-spinner>
+      Run all (full)
+    </ion-button>
+  </div>
+
+  <div class="sdk-row">
+    <ion-item lines="none" class="sdk-select">
+      <ion-label position="stacked">SDK version</ion-label>
+      <ion-select
+        interface="popover"
+        [value]="selectedVersion"
+        (ionChange)="onSdkVersionChange($any($event.detail.value))"
+      >
+        <ion-select-option *ngFor="let v of supportedVersions" [value]="v">{{ v }}</ion-select-option>
+        <ion-select-option [value]="customVersionOption">Other (custom)…</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <div *ngIf="showCustomVersion" class="sdk-custom">
+      <ion-input
+        [(ngModel)]="customVersion"
+        placeholder="e.g., 5.0.0-beta.6"
+      ></ion-input>
+      <ion-button size="small" (click)="applyCustomVersion()">Apply</ion-button>
+    </div>
+
+    <ion-badge [color]="activeVersion.source === 'fallback' ? 'warning' : 'medium'" class="sdk-badge">
+      <ng-container *ngIf="activeVersion.source === 'fallback'">⚠️ Bundled fallback · </ng-container>
+      SDK {{ activeVersion.version }}
+    </ion-badge>
+  </div>
+
+  <div class="env-summary">
+    <ion-text color="medium">
+      <small>RPC: {{ networkRpc }} &nbsp;·&nbsp; Indexer: {{ networkIndexer }}</small>
+    </ion-text>
+  </div>
+</div>

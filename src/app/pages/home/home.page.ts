@@ -1,4 +1,4 @@
-import { AccountInfo, NetworkType, SDK_VERSION, TezosOperationType } from '@tezos-x/octez.connect-dapp'
+import type { AccountInfo } from '@tezos-x/octez.connect-dapp'
 import { Component, ViewChild } from '@angular/core'
 import { ActivatedRoute } from '@angular/router'
 import { AlertController, IonContent, ToastController } from '@ionic/angular'
@@ -7,28 +7,15 @@ import { switchMap, throttleTime } from 'rxjs/operators'
 
 import { BeaconService } from '../../services/beacon/beacon.service'
 import { ScrollService } from '../../services/scroll/scroll.service'
+import { SdkLoaderService } from '../../playground/services/sdk-loader.service'
+import { NETWORKS, NetworkName } from '../../playground/network.config'
+import { getExplorerLinkForAddress, getExplorerLinkForTxHash } from '../../utils/explorer'
+import { buildSignPayload } from '../../utils/sign-payload'
 
-export const getExplorerLinkForAddress: (
-  accountInfo: AccountInfo | undefined,
-  address: string
-) => string = (accountInfo: AccountInfo | undefined, address: string): string => {
-  const networkType = accountInfo?.network?.type ?? NetworkType.MAINNET
-  if (networkType === NetworkType.MAINNET) {
-    return `https://tzkt.io/${address}`
-  }
-  return `https://${networkType}.tzkt.io/${address}`
-}
-
-export const getExplorerLinkForTxHash: (
-  accountInfo: AccountInfo | undefined,
-  txHash: string
-) => string = (accountInfo: AccountInfo | undefined, txHash: string): string => {
-  const networkType = accountInfo?.network?.type ?? NetworkType.MAINNET
-  if (networkType === NetworkType.MAINNET) {
-    return `https://tzkt.io/${txHash}`
-  }
-  return `https://${networkType}.tzkt.io/${txHash}`
-}
+// Re-export the consolidated helpers so older callsites that import them from
+// this module keep compiling. New code should import directly from
+// `src/app/utils/explorer.ts`.
+export { getExplorerLinkForAddress, getExplorerLinkForTxHash }
 
 @Component({
   selector: 'app-home',
@@ -40,7 +27,7 @@ export class HomePage {
 
   public contractAddress: string = 'KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn'
   public contractBalance: string = ''
-  public activeAccount$: Observable<AccountInfo>
+  public activeAccount$: Observable<AccountInfo | undefined>
   public activeAccount: AccountInfo | undefined
 
   public selectedNetwork: string = 'shadownet'
@@ -69,7 +56,8 @@ export class HomePage {
 
   public connectedAccounts: AccountInfo[] = []
 
-  public sdkVersion: string = SDK_VERSION
+  // Sourced from the runtime-loaded SDK rather than a static `SDK_VERSION` import.
+  public sdkVersion: string
   public sdkBeaconId: string | undefined
 
   constructor(
@@ -77,10 +65,12 @@ export class HomePage {
     private readonly beaconService: BeaconService,
     private readonly route: ActivatedRoute,
     private readonly scrollService: ScrollService,
-    private readonly toastController: ToastController
+    private readonly toastController: ToastController,
+    private readonly sdkLoader: SdkLoaderService
   ) {
+    this.sdkVersion = this.sdkLoader.getActiveVersion().version
     this.activeAccount$ = this.beaconService.activeAccount$
-    this.activeAccount$.subscribe((activeAccount: AccountInfo) => {
+    this.activeAccount$.subscribe((activeAccount: AccountInfo | undefined) => {
       this.activeAccount = activeAccount
     })
 
@@ -96,7 +86,13 @@ export class HomePage {
       this.scrollTo(element).catch(console.error)
     })
 
-    this.beaconService.client.beaconId
+    this.beaconService
+      .whenReady()
+      .then(() => {
+        // The loaded version may resolve to a CDN version or the bundled fallback.
+        this.sdkVersion = this.sdkLoader.getActiveVersion().version
+        return this.beaconService.client.beaconId
+      })
       .then((beaconId: string) => {
         this.sdkBeaconId = beaconId
       })
@@ -104,12 +100,9 @@ export class HomePage {
   }
 
   public async askForPermissions(): Promise<void> {
-    await this.beaconService.reinitClient(
-      this.selectedNetwork as NetworkType,
-      this.networkName,
-      this.networkRpcUrl
-    )
-    await this.beaconService.client.requestPermissions()
+    // Bug fix (US1 / FR-002): no-op when an active account already exists.
+    // `connect` only reinits + requests permissions when there's no active account.
+    await this.beaconService.connect(this.selectedNetwork, this.networkName, this.networkRpcUrl)
   }
 
   public async showConnectedAccounts(): Promise<void> {
@@ -182,7 +175,7 @@ export class HomePage {
     return this.requestOperationWithAlert(
       [
         {
-          kind: TezosOperationType.TRANSACTION,
+          kind: 'transaction',
           amount: amount.toString(),
           destination: 'tz1hrHoK11TBz3HwWD2YZyZVWUyAg44h3eqd'
         }
@@ -193,7 +186,7 @@ export class HomePage {
 
   public async delegate(): Promise<void> {
     return this.requestOperationWithAlert(
-      [{ kind: TezosOperationType.DELEGATION, delegate: this.delegationAddress }],
+      [{ kind: 'delegation', delegate: this.delegationAddress }],
       'Thanks for your delegation!'
     )
   }
@@ -207,7 +200,7 @@ export class HomePage {
     return this.requestOperationWithAlert(
       [
         {
-          kind: TezosOperationType.TRANSACTION,
+          kind: 'transaction',
           amount: amount.toString(),
           destination: this.transferRecipient
         }
@@ -228,8 +221,15 @@ export class HomePage {
       throw new Error('No active account set')
     }
 
+    // Bug fix (US1 / FR-005, FR-006, FR-007): frame the payload as micheline-packed
+    // hex with UTF-8 byte length, pass an explicit signingType, and route to the
+    // active account's address as sourceAddress.
+    const built = buildSignPayload(this.unsignedPayload)
+    await this.beaconService.whenReady()
     await this.beaconService.client.requestSignPayload({
-      payload: this.unsignedPayload,
+      payload: built.payload,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      signingType: built.signingType as any,
       sourceAddress: this.activeAccount.address
     })
   }
@@ -264,7 +264,10 @@ export class HomePage {
       buttons.push({
         text: 'Open Blockexplorer',
         handler: async (): Promise<void> => {
-          window.open(getExplorerLinkForTxHash(this.activeAccount, transactionHash), '_blank')
+          // Resolve the active network's NetworkConfig from the legacy `selectedNetwork`
+          // string (defaulting to shadownet if it doesn't match a known network).
+          const netName: NetworkName = this.selectedNetwork === 'mainnet' ? 'mainnet' : 'shadownet'
+          window.open(getExplorerLinkForTxHash(NETWORKS[netName], transactionHash), '_blank')
         }
       })
     }

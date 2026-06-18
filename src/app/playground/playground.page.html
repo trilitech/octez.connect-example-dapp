@@ -1,0 +1,67 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>octez.connect Playground</ion-title>
+    <ion-buttons slot="end">
+      <ion-badge color="medium" *ngIf="ready">
+        SDK {{ sdkVersion }}<ng-container *ngIf="sdkSource === 'fallback'"> · bundled fallback</ng-container>
+      </ion-badge>
+      <ion-button routerLink="/legacy" fill="clear" size="small">Legacy</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <ion-toolbar *ngIf="ready">
+    <div class="ion-padding-horizontal">
+      <pg-wallet-control></pg-wallet-control>
+    </div>
+  </ion-toolbar>
+
+  <ion-progress-bar
+    *ngIf="runProgress$ | async as progress"
+    type="determinate"
+    [value]="progress.total ? progress.current / progress.total : 0"
+  ></ion-progress-bar>
+</ion-header>
+
+<ion-content>
+  <div *ngIf="!ready" class="ion-padding ion-text-center">
+    <ion-spinner name="dots"></ion-spinner>
+    <p>Loading SDK…</p>
+  </div>
+
+  <div *ngIf="ready" class="ion-padding playground-body">
+    <ion-text
+      *ngIf="runProgress$ | async as progress"
+      color="medium"
+      class="run-progress"
+    >
+      <small>Running test {{ progress.current }}/{{ progress.total }}…</small>
+    </ion-text>
+
+    <ion-accordion-group [multiple]="true" [value]="categoryOrder">
+      <ion-accordion *ngFor="let category of categoryOrder" [value]="category">
+        <ion-item slot="header" color="light">
+          <ion-label>
+            <strong>{{ categoryMeta[category].label }}</strong>
+            <span class="cat-count"> ({{ testsIn(category).length }})</span>
+            <p class="cat-desc">
+              <ion-text color="medium"><small>{{ categoryMeta[category].description }}</small></ion-text>
+            </p>
+          </ion-label>
+        </ion-item>
+
+        <div slot="content" class="cat-content">
+          <pg-contract-explorer *ngIf="category === 'contracts'"></pg-contract-explorer>
+          <p *ngIf="testsIn(category).length === 0" class="cat-empty">
+            <ion-text color="medium"><small>No tests in this category yet.</small></ion-text>
+          </p>
+          <pg-test-card
+            *ngFor="let t of testsIn(category); trackBy: trackById"
+            [def]="t"
+          ></pg-test-card>
+        </div>
+      </ion-accordion>
+    </ion-accordion-group>
+
+    <pg-run-history></pg-run-history>
+  </div>
+</ion-content>

@@ -1,0 +1,105 @@
+<div class="run-history">
+  <div class="rh-header">
+    <h2>Run history</h2>
+    <ion-button
+      *ngIf="runs.length > 0"
+      size="small"
+      fill="clear"
+      color="medium"
+      (click)="clearAll()"
+    >
+      Clear all
+    </ion-button>
+  </div>
+
+  <p *ngIf="runs.length === 0" class="rh-empty">
+    <ion-text color="medium">
+      <small>No runs yet. Use “Run all (safe)” or “Run all (full)” to create a numbered run.</small>
+    </ion-text>
+  </p>
+
+  <ion-accordion-group [multiple]="true">
+    <ion-accordion *ngFor="let run of runs; trackBy: trackByRunNumber" [value]="run.runNumber">
+      <ion-item slot="header" color="light">
+        <ion-label>
+          <strong>RUN {{ run.runNumber }}</strong>: {{ run.sdkVersion }} — {{ run.runType }} —
+          {{ run.passCount }}/{{ run.totalCount }} passed
+          <p class="rh-sub">
+            <ion-text color="medium">
+              <small>{{ run.network }} · {{ run.startedAt }}</small>
+            </ion-text>
+          </p>
+        </ion-label>
+        <ion-button
+          slot="end"
+          fill="clear"
+          color="danger"
+          size="small"
+          (click)="deleteRun(run.runNumber, $event)"
+          title="Delete this run"
+        >
+          ✕
+        </ion-button>
+      </ion-item>
+
+      <div slot="content" class="rh-content">
+        <div class="rh-actions">
+          <ion-button size="small" fill="outline" (click)="exportMarkdown(run)">Export MD</ion-button>
+          <ion-button size="small" fill="outline" (click)="exportJson(run)">Export JSON</ion-button>
+          <ion-button size="small" fill="clear" (click)="copyReport(run)">Copy</ion-button>
+        </div>
+
+        <div
+          *ngFor="let r of run.results; let i = index; trackBy: trackByResult"
+          class="rh-result"
+          [attr.data-status]="r.status"
+        >
+          <div class="rh-result-head">
+            <span class="rh-title">{{ r.title }}</span>
+            <ion-badge [color]="statusColor(r.status)">{{ r.status }}</ion-badge>
+            <ion-text color="medium" class="rh-dur"><small>{{ r.durationMs }} ms</small></ion-text>
+          </div>
+
+          <p *ngIf="r.summary" class="rh-summary">{{ r.summary }}</p>
+
+          <p *ngIf="r.txHash" class="rh-tx">
+            op:
+            <a *ngIf="r.explorerUrl" [href]="r.explorerUrl" target="_blank" rel="noopener">{{ r.txHash }}</a>
+            <span *ngIf="!r.explorerUrl">{{ r.txHash }}</span>
+          </p>
+
+          <p *ngIf="r.originatedAddress" class="rh-tx">
+            originated:
+            <a
+              *ngIf="r.originatedAddressUrl"
+              [href]="r.originatedAddressUrl"
+              target="_blank"
+              rel="noopener"
+            >{{ r.originatedAddress }}</a>
+            <span *ngIf="!r.originatedAddressUrl">{{ r.originatedAddress }}</span>
+          </p>
+
+          <p *ngIf="r.signature" class="rh-sig">signature: <code>{{ r.signature }}</code></p>
+
+          <ion-text *ngIf="r.error" color="danger" class="rh-error">
+            <small><strong>Error:</strong> {{ r.error }}</small>
+          </ion-text>
+
+          <div *ngIf="r.request !== undefined" class="rh-json">
+            <ion-button size="small" fill="clear" (click)="toggle(run.runNumber, i, 'request')">
+              {{ isExpanded(run.runNumber, i, 'request') ? 'Hide' : 'Show' }} request
+            </ion-button>
+            <pre *ngIf="isExpanded(run.runNumber, i, 'request')">{{ r.request | json }}</pre>
+          </div>
+
+          <div *ngIf="r.response !== undefined" class="rh-json">
+            <ion-button size="small" fill="clear" (click)="toggle(run.runNumber, i, 'response')">
+              {{ isExpanded(run.runNumber, i, 'response') ? 'Hide' : 'Show' }} response
+            </ion-button>
+            <pre *ngIf="isExpanded(run.runNumber, i, 'response')">{{ r.response | json }}</pre>
+          </div>
+        </div>
+      </div>
+    </ion-accordion>
+  </ion-accordion-group>
+</div>

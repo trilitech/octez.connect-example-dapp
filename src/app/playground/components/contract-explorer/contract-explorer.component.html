@@ -1,0 +1,74 @@
+<ion-card class="contract-explorer">
+  <ion-card-header>
+    <ion-card-title>Dynamic contract interaction</ion-card-title>
+    <ion-card-subtitle>
+      Paste a KT1, list its entrypoints from the indexer (RPC fallback), then invoke any entrypoint.
+    </ion-card-subtitle>
+  </ion-card-header>
+
+  <ion-card-content>
+    <ion-item lines="full">
+      <ion-label position="stacked">Contract (KT1)</ion-label>
+      <ion-input [(ngModel)]="kt" placeholder="KT1..."></ion-input>
+    </ion-item>
+
+    <div class="ce-actions">
+      <ion-button size="small" (click)="load()" [disabled]="loading || !isValidKt()">
+        <ion-spinner *ngIf="loading" name="dots" slot="start"></ion-spinner>
+        Load entrypoints
+      </ion-button>
+    </div>
+
+    <ion-text *ngIf="loadError" color="danger"><small>{{ loadError }}</small></ion-text>
+
+    <ng-container *ngIf="entrypoints.length > 0">
+      <ion-item lines="full">
+        <ion-label position="stacked">Entrypoint</ion-label>
+        <ion-select
+          interface="popover"
+          [value]="selectedEntrypoint"
+          (ionChange)="onEntrypointChange($any($event.detail.value))"
+          placeholder="Select an entrypoint"
+        >
+          <ion-select-option *ngFor="let ep of entrypoints" [value]="ep.name">
+            {{ ep.name }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ng-container *ngIf="selectedEntrypoint">
+        <ion-item lines="full">
+          <ion-label position="stacked">Parameter (Micheline JSON)</ion-label>
+          <ion-textarea
+            [(ngModel)]="parameterJson"
+            [autoGrow]="true"
+            rows="6"
+          ></ion-textarea>
+        </ion-item>
+
+        <ion-item lines="full">
+          <ion-label position="stacked">Amount (mutez)</ion-label>
+          <ion-input type="number" [(ngModel)]="amount"></ion-input>
+        </ion-item>
+
+        <div class="ce-actions">
+          <ion-button size="small" color="primary" (click)="invoke()" [disabled]="!canInvoke()">
+            <ion-spinner *ngIf="invoking" name="dots" slot="start"></ion-spinner>
+            Invoke
+          </ion-button>
+          <ion-text *ngIf="!account" color="medium"><small>Connect a wallet to invoke.</small></ion-text>
+        </div>
+
+        <ion-text *ngIf="invokeError" color="danger" class="ce-error">
+          <small><strong>Error:</strong> {{ invokeError }}</small>
+        </ion-text>
+
+        <p *ngIf="txHash" class="ce-tx">
+          op:
+          <a *ngIf="explorerUrl" [href]="explorerUrl" target="_blank" rel="noopener">{{ txHash }}</a>
+          <span *ngIf="!explorerUrl">{{ txHash }}</span>
+        </p>
+      </ng-container>
+    </ng-container>
+  </ion-card-content>
+</ion-card>

@@ -4,6 +4,10 @@ import { PreloadAllModules, RouterModule, Routes } from '@angular/router'
 const routes: Routes = [
   {
     path: '',
+    loadChildren: () => import('./playground/playground.module').then((m) => m.PlaygroundModule)
+  },
+  {
+    path: 'legacy',
     loadChildren: () => import('./pages/home/home.module').then((m) => m.HomePageModule)
   },
   { path: '**', redirectTo: '/', pathMatch: 'full' }
