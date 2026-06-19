@@ -176,9 +176,10 @@ const failingContract: TestDefinition = {
   title: 'Failing contract call (FAILWITH)',
   category: 'contracts',
   description:
-    'Calls an entrypoint expected to run FAILWITH so the wallet/RPC returns a clear failure surfaced as an error result.',
+    'Calls an entrypoint expected to run FAILWITH. The rejection is the expected outcome, so it is recorded as a success.',
   requiredScope: 'octez-connect',
   enabled: true,
+  expectsFailure: true,
   inputs: [
     { key: 'contract', label: 'Contract (KT1)', type: 'text', defaultFromNetwork: 'counter', placeholder: 'KT1...' },
     { key: 'entrypoint', label: 'Entrypoint', type: 'text', default: 'fail' },
@@ -208,9 +209,10 @@ const failingNoop: TestDefinition = {
   title: 'Invalid operation (malformed destination)',
   category: 'contracts',
   description:
-    'Submits an intentionally-invalid transaction (malformed destination) and surfaces the rejection as an error result.',
+    'Submits an intentionally-invalid transaction (malformed destination). The rejection is the expected outcome, so it is recorded as a success.',
   requiredScope: 'octez-connect',
   enabled: true,
+  expectsFailure: true,
   inputs: [{ key: 'destination', label: 'Destination', type: 'text', default: 'KT1invalidinvalidinvalidinvalid' }],
   async run(ctx) {
     if (!ctx.account) throw new Error('wallet not connected')

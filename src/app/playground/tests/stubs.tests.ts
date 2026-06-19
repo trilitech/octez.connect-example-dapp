@@ -1,65 +1,7 @@
-// Disabled stub cards for out-of-scope flows (US8 / T058). Each renders as a
-// disabled card with a clear reason; the runner short-circuits on `enabled: false`
-// so `run` is never actually invoked.
+// No disabled stub cards remain — every out-of-scope flow has been removed from
+// the playground. Kept as an (empty) registry slot so `tests/index.ts` can keep
+// spreading STUB_TESTS without a conditional.
 
 import { TestDefinition } from './test-types'
 
-function stub(
-  id: string,
-  title: string,
-  category: TestDefinition['category'],
-  description: string,
-  disabledReason: string
-): TestDefinition {
-  return {
-    id,
-    title,
-    category,
-    description,
-    requiredScope: 'octez-connect',
-    enabled: false,
-    disabledReason,
-    inputs: [],
-    async run() {
-      throw new Error('disabled')
-    }
-  }
-}
-
-export const STUB_TESTS: TestDefinition[] = [
-  stub(
-    'stubs.sapling',
-    'Sapling shielded transactions',
-    'contracts',
-    'Demonstrates Sapling shielded-pool interactions.',
-    'Not feasible with octez.connect + RPC alone. Sapling key management requires off-chain proving infrastructure.'
-  ),
-  stub(
-    'stubs.etherlink-bridge',
-    'Etherlink bridge',
-    'tokens',
-    'Bridge assets to/from Etherlink.',
-    'Out of scope: requires the Etherlink bridge contracts and an EVM-side counterpart not exercised by this playground.'
-  ),
-  stub(
-    'stubs.tezlink-bridge',
-    'Tezlink bridge',
-    'tokens',
-    'Bridge assets via Tezlink.',
-    'Out of scope: Tezlink bridging requires dedicated bridge infrastructure beyond octez.connect.'
-  ),
-  stub(
-    'stubs.onchain-sig-verification',
-    'On-chain signature verification',
-    'crypto',
-    'Verify a signature on-chain via a CHECK_SIGNATURE contract.',
-    'Out of scope: requires a deployed verification contract and is not part of the octez.connect surface under test.'
-  ),
-  stub(
-    'stubs.faucet',
-    'Faucet',
-    'core',
-    'Top up the active account from a testnet faucet.',
-    'Out of scope: faucet funding is an external service, not an octez.connect capability.'
-  )
-]
+export const STUB_TESTS: TestDefinition[] = []
