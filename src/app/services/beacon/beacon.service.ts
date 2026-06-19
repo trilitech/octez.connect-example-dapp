@@ -33,6 +33,12 @@ import { distinctUntilChanged } from 'rxjs/operators'
 import { NetworkService } from '../../playground/services/network.service'
 import { SdkLoaderService } from '../../playground/services/sdk-loader.service'
 
+// WalletConnect projectId. The SDK ships a shared default
+// (24469fd0a06df227b6e5f7dc7de0ff4f) that the WalletConnect relay throttles,
+// which makes connecting hang for a long time. Use a dedicated project id
+// (from https://cloud.reown.com) so the relay accepts the connection promptly.
+const WALLETCONNECT_PROJECT_ID = 'd9e485a41c494fde4e23c8cdc06db59c'
+
 @Injectable({
   providedIn: 'root'
 })
@@ -100,7 +106,8 @@ export class BeaconService {
     const cfg = this.networkService.getActive()
     this.client = new this.sdk.DAppClient({
       name: 'Octez Connect Example Dapp',
-      network: { type: cfg.sdkNetworkType, rpcUrl: cfg.rpc }
+      network: { type: cfg.sdkNetworkType, rpcUrl: cfg.rpc },
+      walletConnectOptions: { projectId: WALLETCONNECT_PROJECT_ID }
     }) as DAppClient
     await this.registerSubscriptions()
     await this.tryRestoreActiveForNetwork(cfg.sdkNetworkType)
