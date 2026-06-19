@@ -36,7 +36,7 @@ const RUN_HISTORY_CAP = 50
 export class TestRunnerService {
   public readonly results$ = new BehaviorSubject<Record<string, TestResult>>({})
   public readonly runs$ = new BehaviorSubject<PlaygroundRun[]>([])
-  public readonly inFlightRunAll$ = new BehaviorSubject<'safe' | 'full' | null>(null)
+  public readonly inFlightRunAll$ = new BehaviorSubject<boolean>(false)
   public readonly runProgress$ = new BehaviorSubject<{ current: number; total: number } | null>(null)
 
   private queue: Array<{ def: TestDefinition; inputs: Record<string, unknown> }> = []
@@ -57,7 +57,7 @@ export class TestRunnerService {
 
   public async run(def: TestDefinition, inputs: Record<string, unknown>): Promise<void> {
     // If a Run-all is in flight, queue this individual run (FR-065).
-    if (this.inFlightRunAll$.value !== null) {
+    if (this.inFlightRunAll$.value) {
       this.queue.push({ def, inputs })
       this.setStatus(def.id, def, 'queued')
       return
@@ -65,29 +65,26 @@ export class TestRunnerService {
     await this.runOne(def, inputs)
   }
 
-  // ── Run-all (safe / full) ──────────────────────────────────────────────────
+  // ── Run-all ──────────────────────────────────────────────────────────────
+  // Single run-all path: the "safe" mode was removed (002) because the read-only
+  // operations it ran no longer exist. Runs every enabled test sequentially.
 
-  public async runAllSafe(): Promise<void> {
-    const tests = ALL_TESTS.filter((t) => t.enabled && t.safeForRunAll)
-    await this.runAll('safe', tests)
-  }
+  public async runAll(): Promise<void> {
+    if (this.inFlightRunAll$.value) return
 
-  public async runAllFull(): Promise<void> {
     const tests = ALL_TESTS.filter((t) => t.enabled)
-    await this.runAll('full', tests)
-  }
-
-  private async runAll(runType: 'safe' | 'full', tests: TestDefinition[]): Promise<void> {
-    if (this.inFlightRunAll$.value !== null) return
 
     await this.beaconService.whenReady()
     const account = await this.beaconService.client.getActiveAccount().catch(() => undefined)
     const network = this.networkService.getActive()
     const walletAddress = account?.address
 
-    // Mainnet "Run all (full)" confirmation (FR-041, research §R11).
-    if (runType === 'full' && network.name === 'mainnet') {
-      const mutating = tests.filter((t) => !t.safeForRunAll).length
+    // Mainnet confirmation (002 FR-005). "Mutating" = operations submitted through
+    // the wallet (octez-connect scope). All remaining tests are wallet-scoped.
+    if (network.name === 'mainnet') {
+      const mutating = tests.filter(
+        (t) => t.requiredScope === 'octez-connect' || t.requiredScope === 'both'
+      ).length
       const ok = window.confirm(
         `You are about to run ${tests.length} tests (${mutating} mutating) on MAINNET` +
           (walletAddress ? ` with wallet ${walletAddress}` : ' (no wallet connected)') +
@@ -96,12 +93,11 @@ export class TestRunnerService {
       if (!ok) return
     }
 
-    this.inFlightRunAll$.next(runType)
+    this.inFlightRunAll$.next(true)
     this.runProgress$.next({ current: 0, total: tests.length })
 
     const run: PlaygroundRun = {
       runNumber: this.nextRunNumber(),
-      runType,
       startedAt: new Date().toISOString(),
       endedAt: '',
       sdkVersion: this.sdkLoader.getActiveVersion().version,
@@ -120,9 +116,9 @@ export class TestRunnerService {
         const inputs = this.buildDefaultInputs(def, network)
 
         let result: TestResult
-        if (runType === 'full' && this.missingRequiredNetworkDefault(def, inputs)) {
-          // FR-042: no contract address for the active network → record an error
-          // result and continue rather than prompting the wallet for a no-op.
+        if (this.missingRequiredNetworkDefault(def, inputs)) {
+          // No contract address for the active network → record an error result
+          // and continue rather than prompting the wallet for a no-op (FR-010).
           result = this.errorResult(def, 'no contract address supplied for active network')
           this.publishResult(result)
         } else {
@@ -137,7 +133,7 @@ export class TestRunnerService {
       run.endedAt = new Date().toISOString()
       this.runs$.next([...this.runs$.value, run])
       this.persistRuns()
-      this.inFlightRunAll$.next(null)
+      this.inFlightRunAll$.next(false)
       this.runProgress$.next(null)
       await this.drainQueue()
     }

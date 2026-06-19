@@ -30,8 +30,8 @@ export class WalletControlComponent implements OnInit, OnDestroy {
   public switching = false
   public connecting = false
 
-  // Mirrors TestRunnerService.inFlightRunAll$ for disabling the Run-all buttons.
-  public inFlightRunAll: 'safe' | 'full' | null = null
+  // Mirrors TestRunnerService.inFlightRunAll$ for disabling the Run-all button.
+  public inFlightRunAll = false
 
   // SDK version switcher state.
   public readonly supportedVersions = SUPPORTED_VERSIONS
@@ -95,12 +95,8 @@ export class WalletControlComponent implements OnInit, OnDestroy {
     )
   }
 
-  public runAllSafe(): void {
-    this.testRunner.runAllSafe().catch((err) => console.error('runAllSafe failed', err))
-  }
-
-  public runAllFull(): void {
-    this.testRunner.runAllFull().catch((err) => console.error('runAllFull failed', err))
+  public runAll(): void {
+    this.testRunner.runAll().catch((err) => console.error('runAll failed', err))
   }
 
   public onSdkVersionChange(value: string): void {

@@ -68,23 +68,13 @@
   <div class="run-all">
     <ion-button
       size="small"
-      fill="solid"
-      color="secondary"
-      (click)="runAllSafe()"
-      [disabled]="inFlightRunAll !== null || switching"
-    >
-      <ion-spinner *ngIf="inFlightRunAll === 'safe'" name="dots" slot="start"></ion-spinner>
-      Run all (safe)
-    </ion-button>
-    <ion-button
-      size="small"
       fill="outline"
       color="danger"
-      (click)="runAllFull()"
-      [disabled]="inFlightRunAll !== null || switching"
+      (click)="runAll()"
+      [disabled]="inFlightRunAll || switching"
     >
-      <ion-spinner *ngIf="inFlightRunAll === 'full'" name="dots" slot="start"></ion-spinner>
-      Run all (full)
+      <ion-spinner *ngIf="inFlightRunAll" name="dots" slot="start"></ion-spinner>
+      Run all
     </ion-button>
   </div>
 

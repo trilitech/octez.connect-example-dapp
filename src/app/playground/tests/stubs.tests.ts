@@ -17,7 +17,6 @@ function stub(
     category,
     description,
     requiredScope: 'octez-connect',
-    safeForRunAll: false,
     enabled: false,
     disabledReason,
     inputs: [],
@@ -48,13 +47,6 @@ export const STUB_TESTS: TestDefinition[] = [
     'tokens',
     'Bridge assets via Tezlink.',
     'Out of scope: Tezlink bridging requires dedicated bridge infrastructure beyond octez.connect.'
-  ),
-  stub(
-    'stubs.local-fee-estimation',
-    'Local fee estimation',
-    'core',
-    'Estimate operation fees locally before signing.',
-    'Out of scope: local fee estimation requires a forging/simulation library (e.g. Taquito) which this playground intentionally avoids.'
   ),
   stub(
     'stubs.onchain-sig-verification',

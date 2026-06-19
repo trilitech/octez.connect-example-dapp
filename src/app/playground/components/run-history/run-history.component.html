@@ -14,7 +14,7 @@
 
   <p *ngIf="runs.length === 0" class="rh-empty">
     <ion-text color="medium">
-      <small>No runs yet. Use “Run all (safe)” or “Run all (full)” to create a numbered run.</small>
+      <small>No runs yet. Use “Run all” to create a numbered run.</small>
     </ion-text>
   </p>
 
@@ -22,7 +22,8 @@
     <ion-accordion *ngFor="let run of runs; trackBy: trackByRunNumber" [value]="run.runNumber">
       <ion-item slot="header" color="light">
         <ion-label>
-          <strong>RUN {{ run.runNumber }}</strong>: {{ run.sdkVersion }} — {{ run.runType }} —
+          <strong>RUN {{ run.runNumber }}</strong>: {{ run.sdkVersion
+          }}<span *ngIf="run.runType"> — {{ run.runType }}</span> —
           {{ run.passCount }}/{{ run.totalCount }} passed
           <p class="rh-sub">
             <ion-text color="medium">

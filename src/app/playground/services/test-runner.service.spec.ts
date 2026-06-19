@@ -4,7 +4,7 @@ import { TestRunnerService } from './test-runner.service'
 
 // Minimal fakes for the runner's dependencies. The runner only touches a small
 // surface of each: whenReady/client.getActiveAccount, network resolution, rpc/
-// indexer pass-through (used by the real safe tests), and SDK version.
+// indexer pass-through (used by the real tests), and SDK version.
 function makeRunner(): { service: TestRunnerService } {
   const beaconService = {
     whenReady: () => Promise.resolve(),
@@ -45,7 +45,6 @@ describe('TestRunnerService FIFO queue (FR-065)', () => {
       category: 'core',
       description: '',
       requiredScope: 'none',
-      safeForRunAll: false,
       enabled: true,
       inputs: [],
       async run() {
@@ -57,7 +56,7 @@ describe('TestRunnerService FIFO queue (FR-065)', () => {
     let queuedStatusSeen = false
     let calledDuringRun = false
     const sub = service.inFlightRunAll$.subscribe((v) => {
-      if (v === 'safe' && !calledDuringRun) {
+      if (v && !calledDuringRun) {
         calledDuringRun = true
         // Request an individual run while the Run-all owns the runner.
         void service.run(fakeDef, {})
@@ -65,12 +64,12 @@ describe('TestRunnerService FIFO queue (FR-065)', () => {
       }
     })
 
-    await service.runAllSafe()
+    await service.runAll()
     sub.unsubscribe()
 
     expect(queuedStatusSeen).toBe(true) // flipped to 'queued' while in-flight
     expect(fakeRuns).toBe(1) // drained exactly once after the Run-all
-    expect(service.inFlightRunAll$.value).toBeNull() // run-all finished
+    expect(service.inFlightRunAll$.value).toBe(false) // run-all finished
     // The queued individual run is NOT part of the numbered run.
     const lastRun = service.runs$.value[service.runs$.value.length - 1]
     expect(lastRun.results.some((r) => r.testId === fakeDef.id)).toBe(false)
