@@ -42,7 +42,9 @@ export const BUILTIN_NETWORKS: Record<string, NetworkConfig> = {
     indexer: 'https://tzkt.io',
     api: 'https://api.tzkt.io',
     contractDefaults: {
-      'counter': null, // user will deploy themselves — see memory `mainnet-counter-deploy`
+      // Counter (increment/decrement/reset) deployed for the playground —
+      // identical code to the Shadownet counter.
+      'counter': 'KT1SAdW3q7GuqnRBPnDrKYkTafRrWU6SH2ED',
       'fa2-transfer': null, // open: pick an FA2 the user controls — memory `mainnet-fa2-default-open`
       'fa2-balance': null
     }
