@@ -197,17 +197,23 @@ export class TestRunnerService {
       return result
     } catch (err) {
       const endedAt = new Date()
+      const message = (err as Error)?.message ?? String(err)
+      // Tests flagged expectsFailure are *designed* to throw: the failure IS the
+      // expected outcome, so record it as success with the failure in the summary
+      // (no red error block) rather than an error (FR-009).
+      const expected = def.expectsFailure === true
       const result: TestResult = {
         testId: def.id,
         title: def.title,
         category: def.category,
-        status: 'error',
+        status: expected ? 'success' : 'error',
         startedAt: startedAt.toISOString(),
         endedAt: endedAt.toISOString(),
         durationMs: endedAt.getTime() - startedAt.getTime(),
         // Keep the request context for debugging even on error (FR-016) when available.
         request: inputs,
-        error: (err as Error)?.message ?? String(err)
+        summary: expected ? `Failed as expected: ${message}` : undefined,
+        error: expected ? undefined : message
       }
       this.publishResult(result)
       return result

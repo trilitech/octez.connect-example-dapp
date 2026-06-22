@@ -28,6 +28,8 @@ export interface NetworkConfig {
   // Indexer REST API base.
   api: string
   contractDefaults: Record<ContractRole, string | null>
+  // Public faucet URL for this network, if any (used by the Faucet test).
+  faucet?: string
   // Marks user-added networks so the UI can surface a delete affordance.
   custom?: boolean
 }
@@ -40,7 +42,9 @@ export const BUILTIN_NETWORKS: Record<string, NetworkConfig> = {
     indexer: 'https://tzkt.io',
     api: 'https://api.tzkt.io',
     contractDefaults: {
-      'counter': null, // user will deploy themselves — see memory `mainnet-counter-deploy`
+      // Counter (increment/decrement/reset) deployed for the playground —
+      // identical code to the Shadownet counter.
+      'counter': 'KT1SAdW3q7GuqnRBPnDrKYkTafRrWU6SH2ED',
       'fa2-transfer': null, // open: pick an FA2 the user controls — memory `mainnet-fa2-default-open`
       'fa2-balance': null
     }
@@ -51,10 +55,13 @@ export const BUILTIN_NETWORKS: Record<string, NetworkConfig> = {
     rpc: 'https://tezos-shadownet.octez.io',
     indexer: 'https://shadownet.tzkt.io',
     api: 'https://api.shadownet.tzkt.io',
+    faucet: 'https://faucet.shadownet.teztnets.com/',
     contractDefaults: {
       'counter': 'KT1S4JeGENf157Ag8RTyUfHujeUg2A32x4VA',
-      'fa2-transfer': null,
-      'fa2-balance': null
+      // Minimal single-asset FA2 deployed for the playground (open mint,
+      // owner-only burn, standard transfer). token_id 0.
+      'fa2-transfer': 'KT1MVwdgXubE8D1h9M4WCmU64XE4VRQPhw2f',
+      'fa2-balance': 'KT1MVwdgXubE8D1h9M4WCmU64XE4VRQPhw2f'
     }
   }
 }

@@ -5,7 +5,6 @@ import { Observable } from 'rxjs'
 
 import { HomePage } from './pages/home/home.page'
 import { BeaconService } from './services/beacon/beacon.service'
-import { ScrollService } from './services/scroll/scroll.service'
 import { SdkLoaderService } from './playground/services/sdk-loader.service'
 
 @Component({
@@ -16,7 +15,6 @@ import { SdkLoaderService } from './playground/services/sdk-loader.service'
 export class AppComponent {
   @ViewChild(HomePage, { read: HomePage }) public myContent!: HomePage
 
-  public selectedTab: string = 'wallets_dapps'
   public connectionStatus$: Observable<string>
   public activeAccount$: Observable<AccountInfo | undefined>
   // Sourced from the runtime-loaded SDK (SdkLoaderService) rather than a static
@@ -26,16 +24,12 @@ export class AppComponent {
 
   constructor(
     private readonly beaconService: BeaconService,
-    private readonly scrollService: ScrollService,
     private readonly storage: Storage,
     private readonly sdkLoader: SdkLoaderService
   ) {
     this.beaconSdkVersion = this.sdkLoader.getActiveVersion().version
     this.connectionStatus$ = this.beaconService.connectionStatus$
     this.activeAccount$ = this.beaconService.activeAccount$
-    this.scrollService.currentSelectedTab$.subscribe((currentTab: string) => {
-      this.selectedTab = currentTab
-    })
     // Refresh once the SDK has finished loading (version may resolve to the
     // bundled fallback or a CDN-loaded version).
     this.beaconService
@@ -44,15 +38,6 @@ export class AppComponent {
         this.beaconSdkVersion = this.sdkLoader.getActiveVersion().version
       })
       .catch(() => undefined)
-  }
-
-  public scrollTo(element: string): void {
-    this.scrollService.scrollTo(element)
-  }
-
-  public select(element: string): void {
-    this.selectedTab = element
-    this.scrollService.setCurrentSelectedTab(element)
   }
 
   public async reset(): Promise<void> {

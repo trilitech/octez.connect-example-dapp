@@ -139,4 +139,39 @@ const contractCall: TestDefinition = {
   }
 }
 
-export const CORE_TESTS: TestDefinition[] = [sendTez, batch, contractCall]
+const faucet: TestDefinition = {
+  id: 'core.faucet',
+  title: 'Faucet',
+  category: 'core',
+  description:
+    'Opens the active network’s public faucet and copies the active account address to the clipboard. The faucet is captcha-protected, so funding is completed there (paste the address, solve the captcha).',
+  requiredScope: 'octez-connect',
+  enabled: true,
+  inputs: [],
+  async run(ctx) {
+    if (!ctx.account) throw new Error('wallet not connected')
+    const url = ctx.network.faucet
+    if (!url) throw new Error(`no faucet configured for ${ctx.network.name}`)
+
+    const address = ctx.account.address
+    // Best-effort: copy the address so the user can paste it into the faucet.
+    let copied = false
+    try {
+      await navigator.clipboard?.writeText(address)
+      copied = true
+    } catch {
+      // Clipboard may be unavailable (permissions / non-secure context); ignore.
+    }
+    const opened = window.open(url, '_blank', 'noopener')
+
+    return {
+      request: { faucet: url, address },
+      response: { opened: !!opened, addressCopied: copied },
+      summary: opened
+        ? `Opened ${url} — ${copied ? 'address copied to clipboard, ' : ''}paste ${address} and solve the captcha to receive funds.`
+        : `Could not open a new tab (pop-up blocked). Visit ${url} and request funds for ${address}.`
+    }
+  }
+}
+
+export const CORE_TESTS: TestDefinition[] = [sendTez, batch, contractCall, faucet]

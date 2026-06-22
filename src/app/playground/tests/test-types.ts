@@ -58,6 +58,10 @@ export interface TestDefinition {
   requiredScope: RequiredScope
   enabled: boolean
   disabledReason?: string
+  // When true, the test is *designed* to fail: a thrown error from `run` is the
+  // expected outcome and is recorded as a success (FR-009), so the card reads
+  // green with the failure shown in the summary.
+  expectsFailure?: boolean
   inputs: TestInput[]
   run: (ctx: TestContext) => Promise<TestRunOutput>
 }
