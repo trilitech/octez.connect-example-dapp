@@ -46,6 +46,20 @@
       Connect Wallet
     </ion-button>
 
+    <ion-button
+      *ngIf="!account"
+      size="small"
+      fill="outline"
+      (click)="openMultiNetworkConnect()"
+      [disabled]="!multiNetworkSupported || connecting || switching"
+      [title]="multiNetworkSupported
+        ? 'One pairing granting an account on each selected network (octez.connect v5 multi-network)'
+        : 'Requires SDK >= 5.0.0 — switch the SDK version below'"
+    >
+      <ion-spinner *ngIf="connecting" name="dots" slot="start"></ion-spinner>
+      Connect Multi-Network…
+    </ion-button>
+
     <ion-chip *ngIf="account" color="success" outline="true" class="address-chip">
       <ion-label>{{ account.address }}</ion-label>
     </ion-chip>
@@ -63,6 +77,18 @@
     <ion-text color="medium" class="status">
       <small>{{ connectionStatus }}</small>
     </ion-text>
+  </div>
+
+  <div *ngIf="multiNetworkSession && multiNetworkAccounts.length > 0" class="multi-network-row">
+    <ion-badge color="tertiary">multi-network session</ion-badge>
+    <ion-chip
+      *ngFor="let a of multiNetworkAccounts"
+      outline="true"
+      [color]="a.address === account?.address ? 'success' : 'medium'"
+      [title]="a.address"
+    >
+      <ion-label>{{ multiAccountLabel(a) }}</ion-label>
+    </ion-chip>
   </div>
 
   <div class="run-all">

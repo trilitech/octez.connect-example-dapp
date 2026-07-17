@@ -30,8 +30,14 @@ import { Injectable } from '@angular/core'
 import { BehaviorSubject, Observable } from 'rxjs'
 import { distinctUntilChanged } from 'rxjs/operators'
 
+import { NetworkConfig } from '../../playground/network.config'
 import { NetworkService } from '../../playground/services/network.service'
-import { SdkLoaderService } from '../../playground/services/sdk-loader.service'
+import { SdkLoaderService, supportsMultiNetwork } from '../../playground/services/sdk-loader.service'
+
+// Set when a v5 multi-network pairing succeeds; cleared when every account is
+// removed. Persisted so a reload restores the multi-network session semantics
+// (operation requests MUST carry a CAIP-2 `network` on such sessions).
+const MULTI_NETWORK_KEY = 'octez.connect.multi-network-session'
 
 @Injectable({
   providedIn: 'root'
@@ -53,6 +59,13 @@ export class BeaconService {
   }
 
   public balance = new BehaviorSubject<string>('')
+
+  // Multi-network session state (octez.connect v5): all paired accounts,
+  // one per granted network, each carrying `network.chainId` (CAIP-2).
+  private readonly _multiNetworkAccounts$ = new BehaviorSubject<AccountInfo[]>([])
+  public get multiNetworkAccounts$(): Observable<AccountInfo[]> {
+    return this._multiNetworkAccounts$.asObservable()
+  }
 
   // Cached SDK module — populated by `init()`.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -100,14 +113,66 @@ export class BeaconService {
     const cfg = this.networkService.getActive()
     this.client = new this.sdk.DAppClient({
       name: 'Octez Connect Example Dapp',
-      network: { type: cfg.sdkNetworkType, rpcUrl: cfg.rpc }
+      network: { type: this.resolveSdkNetworkType(cfg.sdkNetworkType), rpcUrl: cfg.rpc }
     }) as DAppClient
+    this.injectNetworkOnOperations()
     await this.registerSubscriptions()
-    await this.tryRestoreActiveForNetwork(cfg.sdkNetworkType)
+    await this.tryRestoreActiveForNetwork(cfg)
+  }
+
+  /**
+   * Map a config's SDK network type onto one the LOADED SDK actually knows.
+   * E.g. `tezosx-mainnet` only exists as a NetworkType from v5 — on a 4.8.x
+   * client fall back to 'custom' so construction doesn't hit an out-of-enum
+   * value (the rpcUrl still points at the right chain).
+   */
+  private resolveSdkNetworkType(type: string): string {
+    try {
+      const known = Object.values(this.sdk.NetworkType ?? {}) as string[]
+      // Only remap when the loaded SDK exposes the enum and lacks the value;
+      // an absent/empty enum must not degrade every network to 'custom'.
+      return known.length > 0 && !known.includes(type) ? 'custom' : type
+    } catch {
+      return type
+    }
+  }
+
+  /**
+   * On a v5 multi-network session, `requestOperation` REQUIRES a CAIP-2
+   * `network` (omitting it throws NetworksUnsupportedBeaconError). Wrap the
+   * client method once per construction so every caller (playground tests,
+   * contract explorer, home page) transparently targets the active network
+   * without having to know about multi-network sessions. Explicitly-passed
+   * `network` values are left untouched.
+   */
+  private injectNetworkOnOperations(): void {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const client = this.client as any
+    if (typeof client.requestOperation !== 'function') return
+    const original = client.requestOperation.bind(client)
+    client.requestOperation = (input: Record<string, unknown>) => {
+      if (this.isMultiNetworkSession() && input && input.network === undefined) {
+        const chainId = this.networkService.getActive().chainId
+        if (chainId) return original({ ...input, network: chainId })
+      }
+      return original(input)
+    }
   }
 
   private async doReinitForActiveNetwork(): Promise<void> {
-    // Tear down the old client. The SDK keeps paired accounts in storage
+    // On a v5 multi-network session, ONE pairing serves every granted
+    // network: keep the client alive and just promote the account matching
+    // the newly selected network (operations are routed per-request via
+    // CAIP-2, injected in injectNetworkOnOperations). Destroying would also
+    // be destructive: v5's destroy() wipes the SDK's persisted storage
+    // (removeBeaconEntriesFromStorage), dropping all paired accounts —
+    // unlike 4.8.x where storage outlived the client.
+    if (this.sdkSupportsMultiNetwork() && this.isMultiNetworkSession()) {
+      await this.tryRestoreActiveForNetwork(this.networkService.getActive())
+      return
+    }
+    // Legacy path: tear down the old client and construct one against the
+    // new network. On 4.8.x the SDK keeps paired accounts in storage
     // independently of any particular client's lifecycle, so this preserves
     // previously-paired addresses (when the SDK does so).
     try {
@@ -119,11 +184,13 @@ export class BeaconService {
   }
 
   /**
-   * Try to find a paired account whose network matches the current SDK
-   * network and promote it via setActiveAccount. If none exists, clear the
-   * active-account subject so the UI shows the Connect CTA.
+   * Try to find a paired account whose network matches the current config —
+   * by CAIP-2 chainId first (v5 multi-network accounts), then by SDK network
+   * type (legacy single-network accounts) — and promote it via
+   * setActiveAccount. If none exists, clear the active-account subject so
+   * the UI shows the Connect CTA.
    */
-  private async tryRestoreActiveForNetwork(sdkNetworkType: string): Promise<void> {
+  private async tryRestoreActiveForNetwork(cfg: NetworkConfig): Promise<void> {
     let accounts: AccountInfo[] = []
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -131,7 +198,12 @@ export class BeaconService {
     } catch (err) {
       console.warn('BeaconService.tryRestoreActiveForNetwork: getAccounts() failed', err)
     }
-    const match = accounts.find((a) => String(a.network?.type ?? '') === sdkNetworkType)
+    this._multiNetworkAccounts$.next(
+      this.isMultiNetworkSession()
+        ? accounts.filter((a) => !!(a.network as { chainId?: string } | undefined)?.chainId)
+        : []
+    )
+    const match = accounts.find((a) => this.accountMatchesNetwork(a, cfg))
     if (match) {
       try {
         await this.client.setActiveAccount(match)
@@ -151,6 +223,70 @@ export class BeaconService {
       // setActiveAccount(undefined) may be unsupported on some SDK versions; ignore.
     }
     this._activeAccount$.next(undefined)
+  }
+
+  private accountMatchesNetwork(account: AccountInfo, cfg: NetworkConfig): boolean {
+    const net = account.network as { type?: string; chainId?: string } | undefined
+    if (cfg.chainId && net?.chainId) {
+      // v5 stores the full CAIP-2 form but accept a bare genesis reference too.
+      const bare = cfg.chainId.replace(/^tezos:/, '')
+      return net.chainId === cfg.chainId || net.chainId === bare
+    }
+    return String(net?.type ?? '') === cfg.sdkNetworkType
+  }
+
+  /** Whether the persisted pairing was made with the v5 multi-network flow. */
+  public isMultiNetworkSession(): boolean {
+    try {
+      return window.localStorage.getItem(MULTI_NETWORK_KEY) === 'true'
+    } catch {
+      return false
+    }
+  }
+
+  /** Whether the LOADED SDK can do multi-network pairing (v5+). */
+  public sdkSupportsMultiNetwork(): boolean {
+    return supportsMultiNetwork(this.loader.getActiveVersion().version)
+  }
+
+  /**
+   * Pair once across several networks at the same time (octez.connect v5
+   * multi-network). Sends `requestPermissions({ networks })` with the CAIP-2
+   * chain id (+ rpcUrl/name hints) of every requested network; a v5 wallet
+   * grants one account per network, a v4.8.6 wallet degrades gracefully to a
+   * single account (per the v5 migration guide §1).
+   *
+   * Only networks with a known `chainId` participate; throws if the loaded
+   * SDK predates multi-network or no requested network has a chain id.
+   */
+  public async connectMultiNetwork(cfgs: NetworkConfig[]): Promise<AccountInfo[]> {
+    await this.whenReady()
+    if (!this.sdkSupportsMultiNetwork()) {
+      throw new Error(
+        `Multi-network pairing needs octez.connect >= 5.0.0 (running ${this.loader.getActiveVersion().version}). ` +
+          'Switch the SDK version first.'
+      )
+    }
+    const networks = cfgs
+      .filter((c) => !!c.chainId)
+      .map((c) => ({ chainId: c.chainId as string, rpcUrl: c.rpc, name: c.name }))
+    if (networks.length === 0) {
+      throw new Error('None of the requested networks has a CAIP-2 chain id.')
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (this.client as any).requestPermissions({ networks })
+
+    try {
+      window.localStorage.setItem(MULTI_NETWORK_KEY, 'true')
+    } catch (err) {
+      console.error('BeaconService.connectMultiNetwork: localStorage write failed', err)
+    }
+
+    // Re-hydrate: publishes multiNetworkAccounts$ and promotes the account
+    // matching the currently selected network.
+    await this.tryRestoreActiveForNetwork(this.networkService.getActive())
+    return this._multiNetworkAccounts$.value
   }
 
   /**
@@ -209,6 +345,20 @@ export class BeaconService {
     }
     this._activeAccount$.next(undefined)
     this._connectionStatus$.next('Not connected')
+    // Keep the multi-network flag while accounts on OTHER networks survive;
+    // drop it (and the per-network account list) once nothing is left.
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const remaining: AccountInfo[] = (await (this.client as any).getAccounts()) ?? []
+      if (remaining.length === 0) this.clearMultiNetworkSession()
+      else if (this.isMultiNetworkSession()) {
+        this._multiNetworkAccounts$.next(
+          remaining.filter((a) => !!(a.network as { chainId?: string } | undefined)?.chainId)
+        )
+      }
+    } catch {
+      // getAccounts is best-effort here; state re-syncs on next reinit.
+    }
   }
 
   /** Remove every paired account on every network — use sparingly. */
@@ -222,6 +372,16 @@ export class BeaconService {
     }
     this._activeAccount$.next(undefined)
     this._connectionStatus$.next('Not connected')
+    this.clearMultiNetworkSession()
+  }
+
+  private clearMultiNetworkSession(): void {
+    try {
+      window.localStorage.removeItem(MULTI_NETWORK_KEY)
+    } catch {
+      // ignore
+    }
+    this._multiNetworkAccounts$.next([])
   }
 
   /**
@@ -229,11 +389,7 @@ export class BeaconService {
    * triggered automatically by `networkService.selected$`, so callers
    * typically don't need to call this directly.
    */
-  public async reinitClient(
-    _networkType?: string,
-    _networkName?: string,
-    _networkRpcUrl?: string
-  ): Promise<void> {
+  public async reinitClient(_networkType?: string, _networkName?: string, _networkRpcUrl?: string): Promise<void> {
     this.chain = this.chain
       .then(() => this.doReinitForActiveNetwork())
       .catch((err) => {
@@ -259,19 +415,18 @@ export class BeaconService {
           this._activeAccount$.next(data ?? undefined)
         }
       )
-      await this.client.subscribeToEvent(
-        this.sdk.BeaconEvent.ACTIVE_TRANSPORT_SET,
-        async (data: Transport) => {
-          const t = (data as unknown as { type?: string }).type
-          if (t === this.sdk.TransportType.POST_MESSAGE) {
-            this._connectionStatus$.next('Chrome Extension')
-          } else if (t === this.sdk.TransportType.P2P) {
-            this._connectionStatus$.next('P2P')
-          } else {
-            this._connectionStatus$.next('Not connected')
-          }
+      // v5 emits ACTIVE_TRANSPORT_SET with `undefined` when the transport is
+      // cleared (e.g. during a reinit); treat that as "Not connected".
+      await this.client.subscribeToEvent(this.sdk.BeaconEvent.ACTIVE_TRANSPORT_SET, async (data?: Transport) => {
+        const t = (data as unknown as { type?: string } | undefined)?.type
+        if (t === this.sdk.TransportType.POST_MESSAGE) {
+          this._connectionStatus$.next('Chrome Extension')
+        } else if (t === this.sdk.TransportType.P2P) {
+          this._connectionStatus$.next('P2P')
+        } else {
+          this._connectionStatus$.next('Not connected')
         }
-      )
+      })
     } catch (err) {
       console.error('BeaconService.registerSubscriptions failed', err)
     }

@@ -17,13 +17,7 @@ import { BeaconService } from '../../services/beacon/beacon.service'
 import { getExplorerLinkForAddress, getExplorerLinkForTxHash } from '../../utils/explorer'
 import { NetworkConfig } from '../network.config'
 import { ALL_TESTS } from '../tests'
-import {
-  PlaygroundRun,
-  TestContext,
-  TestDefinition,
-  TestResult,
-  TestStatus
-} from '../tests/test-types'
+import { PlaygroundRun, TestContext, TestDefinition, TestResult, TestStatus } from '../tests/test-types'
 import { IndexerService } from './indexer.service'
 import { NetworkService } from './network.service'
 import { RpcService } from './rpc.service'
@@ -81,10 +75,9 @@ export class TestRunnerService {
 
     // Mainnet confirmation (002 FR-005). "Mutating" = operations submitted through
     // the wallet (octez-connect scope). All remaining tests are wallet-scoped.
-    if (network.name === 'mainnet') {
-      const mutating = tests.filter(
-        (t) => t.requiredScope === 'octez-connect' || t.requiredScope === 'both'
-      ).length
+    // tezosx-mainnet is the Tezos X L2 mainnet — also real funds.
+    if (network.name === 'mainnet' || network.name === 'tezosx-mainnet') {
+      const mutating = tests.filter((t) => t.requiredScope === 'octez-connect' || t.requiredScope === 'both').length
       const ok = window.confirm(
         `You are about to run ${tests.length} tests (${mutating} mutating) on MAINNET` +
           (walletAddress ? ` with wallet ${walletAddress}` : ' (no wallet connected)') +
@@ -252,13 +245,8 @@ export class TestRunnerService {
     return inputs
   }
 
-  private missingRequiredNetworkDefault(
-    def: TestDefinition,
-    inputs: Record<string, unknown>
-  ): boolean {
-    return def.inputs.some(
-      (i) => !!i.defaultFromNetwork && !String(inputs[i.key] ?? '').trim()
-    )
+  private missingRequiredNetworkDefault(def: TestDefinition, inputs: Record<string, unknown>): boolean {
+    return def.inputs.some((i) => !!i.defaultFromNetwork && !String(inputs[i.key] ?? '').trim())
   }
 
   private errorResult(def: TestDefinition, message: string): TestResult {
@@ -316,13 +304,10 @@ export class TestRunnerService {
       window.localStorage.setItem(RUN_HISTORY_KEY, JSON.stringify(runs))
     } catch (err) {
       const quota =
-        err instanceof DOMException &&
-        (err.name === 'QuotaExceededError' || err.name === 'NS_ERROR_DOM_QUOTA_REACHED')
+        err instanceof DOMException && (err.name === 'QuotaExceededError' || err.name === 'NS_ERROR_DOM_QUOTA_REACHED')
       if (quota) {
         this.persistenceEnabled = false
-        this.toast('Run-history storage is full — keeping this session in memory only.').catch(
-          console.error
-        )
+        this.toast('Run-history storage is full — keeping this session in memory only.').catch(console.error)
       } else {
         console.error('TestRunnerService.persistRuns: localStorage write failed', err)
       }

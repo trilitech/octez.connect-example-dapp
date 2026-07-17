@@ -9,7 +9,8 @@ import { NetworkService } from '../../services/network.service'
 import {
   ActiveVersion,
   SdkLoaderService,
-  SUPPORTED_VERSIONS
+  SUPPORTED_VERSIONS,
+  supportsMultiNetwork
 } from '../../services/sdk-loader.service'
 import { TestRunnerService } from '../../services/test-runner.service'
 
@@ -41,6 +42,11 @@ export class WalletControlComponent implements OnInit, OnDestroy {
   public showCustomVersion = false
   public customVersion = ''
 
+  // Multi-network (octez.connect v5): pair once for mainnet + tezosx-mainnet.
+  public multiNetworkSupported = false
+  public multiNetworkSession = false
+  public multiNetworkAccounts: AccountInfo[] = []
+
   private readonly subs = new Subscription()
 
   constructor(
@@ -54,6 +60,8 @@ export class WalletControlComponent implements OnInit, OnDestroy {
   ) {
     this.activeNetwork = this.networkService.getActive()
     this.activeVersion = this.sdkLoader.getActiveVersion()
+    this.multiNetworkSupported = supportsMultiNetwork(this.activeVersion.version)
+    this.multiNetworkSession = this.beaconService.isMultiNetworkSession()
     // Reflect the running version in the dropdown; an unknown (custom) version
     // selects the "Other" option and pre-fills the free-form field.
     if (SUPPORTED_VERSIONS.includes(this.activeVersion.version)) {
@@ -91,6 +99,12 @@ export class WalletControlComponent implements OnInit, OnDestroy {
     this.subs.add(
       this.testRunner.inFlightRunAll$.subscribe((v) => {
         this.inFlightRunAll = v
+      })
+    )
+    this.subs.add(
+      this.beaconService.multiNetworkAccounts$.subscribe((accounts) => {
+        this.multiNetworkAccounts = accounts
+        this.multiNetworkSession = this.beaconService.isMultiNetworkSession()
       })
     )
   }
@@ -135,6 +149,79 @@ export class WalletControlComponent implements OnInit, OnDestroy {
     } finally {
       this.connecting = false
     }
+  }
+
+  // Networks pre-checked in the multi-network picker: the L1+L2 pair that is
+  // actually LIVE today (tezosx-previewnet's L1 is shadownet). mainnet /
+  // tezosx-mainnet stay selectable for when Tezos X mainnet launches.
+  public static readonly DEFAULT_MULTI_NETWORKS = ['shadownet', 'tezosx-previewnet']
+
+  /**
+   * v5 multi-network pairing: pick the networks, then send ONE permission
+   * request granting an account per network (CAIP-2 routed). Afterwards the
+   * network dropdown switches between them without re-pairing.
+   */
+  public async openMultiNetworkConnect(): Promise<void> {
+    const eligible = this.networks.filter((n) => !!n.chainId)
+    const alert = await this.alertController.create({
+      header: 'Multi-network pairing',
+      message: 'One pairing granting an account on each selected network (octez.connect v5).',
+      inputs: eligible.map((n) => ({
+        type: 'checkbox' as const,
+        label: n.name,
+        value: n.name,
+        checked: WalletControlComponent.DEFAULT_MULTI_NETWORKS.includes(n.name)
+      })),
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Connect',
+          handler: (selected: string[]) => {
+            if (!selected || selected.length === 0) {
+              this.toast('Select at least one network.').catch(console.error)
+              return false
+            }
+            this.connectMultiNetworkFor(selected).catch(console.error)
+            return true
+          }
+        }
+      ]
+    })
+    await alert.present()
+  }
+
+  /** Request one pairing spanning the given (by-name) networks. */
+  public async connectMultiNetworkFor(names: string[]): Promise<void> {
+    if (this.connecting) return
+    this.connecting = true
+    try {
+      const wanted = this.networks.filter((n) => names.includes(n.name) && !!n.chainId)
+      const accounts = await this.beaconService.connectMultiNetwork(wanted)
+      if (accounts.length < wanted.length) {
+        await this.toast(
+          `Wallet granted ${accounts.length} of ${wanted.length} requested networks ` +
+            '(a pre-v5 wallet degrades to a single account).'
+        )
+      } else {
+        await this.toast('Multi-network pairing OK — switch networks in the dropdown to test them.')
+      }
+    } catch (err) {
+      console.error('WalletControl.connectMultiNetworkFor failed', err)
+      await this.toast((err as Error)?.message ?? 'Multi-network connect failed.')
+    } finally {
+      this.connecting = false
+    }
+  }
+
+  /** Short label for a granted multi-network account chip. */
+  public multiAccountLabel(a: AccountInfo): string {
+    const net = a.network as { chainId?: string; name?: string; type?: string } | undefined
+    const cfg = this.networks.find(
+      (n) => !!n.chainId && (n.chainId === net?.chainId || n.chainId.replace(/^tezos:/, '') === net?.chainId)
+    )
+    const label = cfg?.name ?? net?.name ?? net?.chainId ?? net?.type ?? '?'
+    const addr = a.address ?? ''
+    return `${label}: ${addr.slice(0, 8)}…${addr.slice(-6)}`
   }
 
   public async disconnect(): Promise<void> {

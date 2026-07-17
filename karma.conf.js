@@ -26,6 +26,14 @@ module.exports = function (config) {
     logLevel: config.LOG_INFO,
     autoWatch: true,
     browsers: ['Chrome'],
+    customLaunchers: {
+      // For CI / containers where the Chrome sandbox is unavailable:
+      //   ng test --watch=false --browsers=ChromeHeadlessNoSandbox
+      ChromeHeadlessNoSandbox: {
+        base: 'ChromeHeadless',
+        flags: ['--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage']
+      }
+    },
     singleRun: false
   });
 };

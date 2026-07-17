@@ -14,6 +14,7 @@ const DEFAULT_VERSION = '4.8.6'
 const CDN_TIMEOUT_MS = 10_000
 
 export const SUPPORTED_VERSIONS: readonly string[] = [
+  '5.0.0',
   '4.8.6',
   '4.8.5',
   '5.0.0-beta.6',
@@ -21,6 +22,13 @@ export const SUPPORTED_VERSIONS: readonly string[] = [
   '5.0.0-beta.4',
   '5.0.0-beta.3'
 ]
+
+// Multi-network (one pairing spanning several networks) shipped on the 5.x
+// line — see the v5 MIGRATION.md ("Multi-network support for Tezos X").
+export function supportsMultiNetwork(version: string): boolean {
+  const major = parseInt(version, 10)
+  return Number.isFinite(major) && major >= 5
+}
 
 // The runtime surface we depend on. Per `contracts/sdk-module-surface.md`.
 // Typed loosely — the playground uses string-literal kinds/signing-types so it
@@ -38,10 +46,9 @@ export interface ActiveVersion {
 // Bundler-opaque dynamic import. The Function constructor body is a string
 // at build time, so Angular/Webpack cannot rewrite the URL.
 // eslint-disable-next-line @typescript-eslint/no-implied-eval
-const dynImport: (u: string) => Promise<SdkModule> = new Function(
-  'u',
-  'return import(u)'
-) as (u: string) => Promise<SdkModule>
+const dynImport: (u: string) => Promise<SdkModule> = new Function('u', 'return import(u)') as (
+  u: string
+) => Promise<SdkModule>
 
 @Injectable({ providedIn: 'root' })
 export class SdkLoaderService {
@@ -76,6 +83,17 @@ export class SdkLoaderService {
       this.cached = mod
       return mod
     } catch (err) {
+      console.warn(`SdkLoaderService: plain CDN load failed (${requested}); retrying with ?bundle-deps.`, err)
+    }
+    // Retry as a self-contained esm.sh bundle. The 5.x packages reference the
+    // wallet-list JSON subpath (@tezos-x/octez.connect-ui/data/*.json) which
+    // esm.sh fails to serve as a per-file module (404 on
+    // .../es2022/data/tezos.json.mjs); the bundled build inlines it.
+    try {
+      const mod = await this.raceTimeout(dynImport(`${url}?bundle-deps`), CDN_TIMEOUT_MS)
+      this.cached = mod
+      return mod
+    } catch (err) {
       console.warn(`SdkLoaderService: CDN load failed (${requested}); falling back to bundled package.`, err)
       const fallback = await import('@tezos-x/octez.connect-dapp')
       this.cached = fallback
@@ -99,10 +117,7 @@ export class SdkLoaderService {
   }
 
   private async raceTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
-    return await Promise.race<T>([
-      p,
-      new Promise<T>((_, rej) => setTimeout(() => rej(new Error('cdn-timeout')), ms))
-    ])
+    return await Promise.race<T>([p, new Promise<T>((_, rej) => setTimeout(() => rej(new Error('cdn-timeout')), ms))])
   }
 
   private async surfaceFallbackToast(requested: string): Promise<void> {

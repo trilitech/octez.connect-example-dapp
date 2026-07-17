@@ -90,7 +90,9 @@ export interface PlaygroundRun {
   startedAt: string
   endedAt: string
   sdkVersion: string
-  network: 'mainnet' | 'shadownet'
+  // Network name the run executed on. Widened from 'mainnet' | 'shadownet'
+  // when tezosx-mainnet (and custom networks) became selectable.
+  network: string
   walletAddress?: string
   passCount: number
   failCount: number
