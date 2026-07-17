@@ -34,7 +34,7 @@ a single pairing can grant the dApp accounts on several Tezos networks at
 once, and operations target a specific network by its CAIP-2 chain id
 (`tezos:<genesis>`). To try it in the playground:
 
-1. In the **SDK version** dropdown pick `5.0.0` (the page reloads and the SDK
+1. In the **SDK version** dropdown pick `5.0.1` (the page reloads and the SDK
    is loaded from the CDN).
 2. Click **Connect Multi-Network…** and pick the networks to pair. The
    default selection is the L1+L2 pair that is **live today**: **shadownet**

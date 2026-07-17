@@ -14,7 +14,7 @@ const DEFAULT_VERSION = '4.8.6'
 const CDN_TIMEOUT_MS = 10_000
 
 export const SUPPORTED_VERSIONS: readonly string[] = [
-  '5.0.0',
+  '5.0.1',
   '4.8.6',
   '4.8.5',
   '5.0.0-beta.6',
