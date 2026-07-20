@@ -1,5 +1,5 @@
 // Dynamically loads `@tezos-x/octez.connect-dapp` at boot:
-//  - Reads localStorage['octez.connect.version'] (default '4.8.6').
+//  - Reads localStorage['octez.connect.version'] (default '5.0.1').
 //  - Races a bundler-opaque dynamic import (`new Function('u','return import(u)')`)
 //    against a 10-second timeout (per spec FR-052 + research §R1).
 //  - On error or timeout, falls back to the statically bundled package and surfaces
@@ -10,18 +10,15 @@ import { Injectable } from '@angular/core'
 import { ToastController } from '@ionic/angular'
 
 const STORAGE_KEY = 'octez.connect.version'
-const DEFAULT_VERSION = '4.8.6'
+const DEFAULT_VERSION = '5.0.1'
+// Version of the statically bundled `@tezos-x/octez.connect-dapp` used as the
+// offline/CDN-failure fallback — keep in sync with package.json.
+const BUNDLED_VERSION = '4.8.6'
 const CDN_TIMEOUT_MS = 10_000
 
-export const SUPPORTED_VERSIONS: readonly string[] = [
-  '5.0.1',
-  '4.8.6',
-  '4.8.5',
-  '5.0.0-beta.6',
-  '5.0.0-beta.5',
-  '5.0.0-beta.4',
-  '5.0.0-beta.3'
-]
+// Dropdown entries. Older/beta versions were removed from the UI list —
+// they remain loadable via the "Other (custom)…" free-form field.
+export const SUPPORTED_VERSIONS: readonly string[] = ['5.0.1', '4.8.6', '4.8.5']
 
 // Multi-network (one pairing spanning several networks) shipped on the 5.x
 // line — see the v5 MIGRATION.md ("Multi-network support for Tezos X").
@@ -112,8 +109,9 @@ export class SdkLoaderService {
   }
 
   private detectBundledVersion(mod: SdkModule): string {
-    // Best-effort: the SDK package may export SDK_VERSION; otherwise fall back to a label.
-    return (mod && (mod.SDK_VERSION as string)) || DEFAULT_VERSION
+    // Best-effort: the SDK package may export SDK_VERSION; otherwise label it
+    // with the version we bundle (NOT the default, which is CDN-loaded).
+    return (mod && (mod.SDK_VERSION as string)) || BUNDLED_VERSION
   }
 
   private async raceTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
