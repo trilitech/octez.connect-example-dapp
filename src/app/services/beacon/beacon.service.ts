@@ -144,6 +144,10 @@ export class BeaconService {
    * contract explorer, home page) transparently targets the active network
    * without having to know about multi-network sessions. Explicitly-passed
    * `network` values are left untouched.
+   *
+   * Also gated on the LOADED SDK being v5+: the multi-network flag persists
+   * in localStorage, so after a version downgrade to 4.8.x (which rejects a
+   * `network` property on request inputs) the wrapper must become a no-op.
    */
   private injectNetworkOnOperations(): void {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -151,7 +155,7 @@ export class BeaconService {
     if (typeof client.requestOperation !== 'function') return
     const original = client.requestOperation.bind(client)
     client.requestOperation = (input: Record<string, unknown>) => {
-      if (this.isMultiNetworkSession() && input && input.network === undefined) {
+      if (this.sdkSupportsMultiNetwork() && this.isMultiNetworkSession() && input && input.network === undefined) {
         const chainId = this.networkService.getActive().chainId
         if (chainId) return original({ ...input, network: chainId })
       }

@@ -168,6 +168,19 @@ describe('BeaconService (multi-network, octez.connect v5)', () => {
     expect(client.operationInputs[1]['network']).toBe('tezos:NetXohUVN5QWR4f')
   })
 
+  it('does NOT inject a network after downgrading to a pre-v5 SDK with a stale multi-network flag', async () => {
+    // Pairing multi-network on v5 persists the flag; if the user then switches
+    // the playground back to 4.8.x, requestOperation must NOT gain a `network`
+    // property (4.8.x rejects it on request inputs).
+    window.localStorage.setItem(MULTI_NETWORK_KEY, 'true')
+    const { service } = await makeService('4.8.6')
+
+    const client = FakeDAppClient.instances[FakeDAppClient.instances.length - 1]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (service.client as any).requestOperation({ operationDetails: [] })
+    expect('network' in client.operationInputs[0]).toBeFalse()
+  })
+
   it('does NOT inject a network on legacy single-network sessions', async () => {
     const { service } = await makeService('5.0.0')
     await service.requestPermissions() // classic flow — no networks arg, no flag
