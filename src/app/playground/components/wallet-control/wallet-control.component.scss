@@ -41,6 +41,18 @@
     margin-left: auto;
   }
 
+  .multi-network-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+
+    ion-chip ion-label {
+      font-family: var(--ion-font-family-mono, monospace);
+      font-size: 0.74rem;
+    }
+  }
+
   .env-summary {
     font-size: 0.78rem;
   }
