@@ -35,8 +35,10 @@ once, and operations target a specific network by its CAIP-2 chain id
 (`tezos:<genesis>`). To try it in the playground:
 
 1. The playground loads octez.connect `5.0.2` (the default) from the CDN —
-   nothing to switch. Other versions, including pre-v5 ones and betas, can be
-   selected in the **SDK version** dropdown or entered via **Other (custom)…**
+   nothing to switch. Stale version selections from previous visits are
+   automatically reset to the current default on the next page load. Other
+   versions, including pre-v5 ones and betas, can be selected in the **SDK
+   version** dropdown or entered via **Other (custom)…**
 2. Click **Connect Multi-Network…** and pick the networks to pair. The
    default selection is the L1+L2 pair that is **live today**: **shadownet**
    (`tezos:NetXsqzbfFenSTS`) and **Tezos X previewnet**

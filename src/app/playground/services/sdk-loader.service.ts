@@ -1,5 +1,7 @@
 // Dynamically loads `@tezos-x/octez.connect-dapp` at boot:
 //  - Reads localStorage['octez.connect.version'] (default '5.0.2').
+//  - Silently migrates legacy default versions (LEGACY_DEFAULTS) to DEFAULT_VERSION
+//    so that returning users automatically see the current default.
 //  - Races a bundler-opaque dynamic import (`new Function('u','return import(u)')`)
 //    against a 10-second timeout (per spec FR-052 + research §R1).
 //  - On error or timeout, falls back to the statically bundled package and surfaces
@@ -11,6 +13,9 @@ import { ToastController } from '@ionic/angular'
 
 const STORAGE_KEY = 'octez.connect.version'
 const DEFAULT_VERSION = '5.0.2'
+// Versions that were previously the default but have since been superseded.
+// On load, any of these stored values is silently migrated to DEFAULT_VERSION.
+const LEGACY_DEFAULTS: readonly string[] = ['5.0.1']
 // Version of the statically bundled `@tezos-x/octez.connect-dapp` used as the
 // offline/CDN-failure fallback — keep in sync with package.json.
 const BUNDLED_VERSION = '4.8.6'
@@ -71,8 +76,19 @@ export class SdkLoaderService {
     if (this.cached) return this.cached
 
     const stored = this.readStoredVersion()
-    const requested = stored ?? DEFAULT_VERSION
-    this.active = { version: requested, source: stored ? 'localStorage' : 'default' }
+    // Silently upgrade legacy default versions (e.g. 5.0.1 → 5.0.2) so that
+    // returning users see the current default without having to manually switch.
+    const isLegacy = stored !== null && LEGACY_DEFAULTS.includes(stored)
+    if (isLegacy) {
+      try {
+        window.localStorage.removeItem(STORAGE_KEY)
+      } catch {
+        // ignore
+      }
+    }
+    const useDefault = isLegacy || stored === null
+    const requested = useDefault ? DEFAULT_VERSION : stored
+    this.active = { version: requested, source: useDefault ? 'default' : 'localStorage' }
 
     const url = `https://esm.sh/@tezos-x/octez.connect-dapp@${encodeURIComponent(requested)}`
     try {
