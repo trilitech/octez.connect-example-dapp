@@ -18,7 +18,7 @@ const CDN_TIMEOUT_MS = 10_000
 
 // Dropdown entries. Older/beta versions were removed from the UI list —
 // they remain loadable via the "Other (custom)…" free-form field.
-export const SUPPORTED_VERSIONS: readonly string[] = ['5.0.2', '4.8.6', '4.8.5']
+export const SUPPORTED_VERSIONS: readonly string[] = ['5.0.2', '4.8.6']
 
 // Multi-network (one pairing spanning several networks) shipped on the 5.x
 // line — see the v5 MIGRATION.md ("Multi-network support for Tezos X").
