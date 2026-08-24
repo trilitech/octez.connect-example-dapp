@@ -34,7 +34,7 @@ a single pairing can grant the dApp accounts on several Tezos networks at
 once, and operations target a specific network by its CAIP-2 chain id
 (`tezos:<genesis>`). To try it in the playground:
 
-1. The playground loads octez.connect `5.0.2` (the default) from the CDN —
+1. The playground loads octez.connect `5.0.3` (the default) from the CDN —
    nothing to switch. Other versions, including pre-v5 ones and betas, can be
    selected in the **SDK version** dropdown or entered via **Other (custom)…**
 2. Click **Connect Multi-Network…** and pick the networks to pair. The
