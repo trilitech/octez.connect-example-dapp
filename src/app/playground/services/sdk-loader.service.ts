@@ -1,5 +1,5 @@
 // Dynamically loads `@tezos-x/octez.connect-dapp` at boot:
-//  - Reads localStorage['octez.connect.version'] (default '5.0.3').
+//  - Reads localStorage['octez.connect.version'] (default '5.0.4').
 //  - Races a bundler-opaque dynamic import (`new Function('u','return import(u)')`)
 //    against a 10-second timeout (per spec FR-052 + research §R1).
 //  - On error or timeout, falls back to the statically bundled package and surfaces
@@ -10,7 +10,7 @@ import { Injectable } from '@angular/core'
 import { ToastController } from '@ionic/angular'
 
 const STORAGE_KEY = 'octez.connect.version'
-const DEFAULT_VERSION = '5.0.3'
+const DEFAULT_VERSION = '5.0.4'
 // Version of the statically bundled `@tezos-x/octez.connect-dapp` used as the
 // offline/CDN-failure fallback — keep in sync with package.json.
 const BUNDLED_VERSION = '4.8.6'
@@ -18,7 +18,7 @@ const CDN_TIMEOUT_MS = 10_000
 
 // Dropdown entries. Older/beta versions were removed from the UI list —
 // they remain loadable via the "Other (custom)…" free-form field.
-export const SUPPORTED_VERSIONS: readonly string[] = ['5.0.3', '4.8.6']
+export const SUPPORTED_VERSIONS: readonly string[] = ['5.0.4', '4.8.6']
 
 // Multi-network (one pairing spanning several networks) shipped on the 5.x
 // line — see the v5 MIGRATION.md ("Multi-network support for Tezos X").
