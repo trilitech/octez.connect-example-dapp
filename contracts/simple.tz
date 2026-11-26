@@ -1,15 +1,15 @@
 # 0.1.0
-# a simple contract to test beacon integration
-# originated on Carthagenet for beacon development
+# a simple contract to test octez.connect integration
+# originated on Carthagenet for octez.connect development
 #
-# tezos-client originate contract beaconSimple transferring 0 from alice running ./simple.tz --init '(Pair 0 True)' --burn-cap 1
+# tezos-client originate contract octezConnectSimple transferring 0 from alice running ./simple.tz --init '(Pair 0 True)' --burn-cap 1
 # KT1RxKJyi48W3bZR8HErRiisXZQw19HwLGWj
 #
-# tezos-client transfer 0 from alice to beaconSimple --entrypoint 'setNumber' --arg '123' --burn-cap 1
-# tezos-client transfer 0 from alice to beaconSimple --entrypoint 'toggleStatus' --arg 'False' --burn-cap 1
-# tezos-client transfer 0 from alice to beaconSimple --entrypoint 'toggleStatus' --arg 'True' --burn-cap 1
-# tezos-client transfer 1.23 from alice to beaconSimple --entrypoint 'default' --arg 'Unit' --burn-cap 1
-# tezos-client get contract storage for beaconSimple
+# tezos-client transfer 0 from alice to octezConnectSimple --entrypoint 'setNumber' --arg '123' --burn-cap 1
+# tezos-client transfer 0 from alice to octezConnectSimple --entrypoint 'toggleStatus' --arg 'False' --burn-cap 1
+# tezos-client transfer 0 from alice to octezConnectSimple --entrypoint 'toggleStatus' --arg 'True' --burn-cap 1
+# tezos-client transfer 1.23 from alice to octezConnectSimple --entrypoint 'default' --arg 'Unit' --burn-cap 1
+# tezos-client get contract storage for octezConnectSimple
 
 parameter
   (or

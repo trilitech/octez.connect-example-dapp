@@ -3,7 +3,7 @@ import type { AccountInfo } from '@tezos-x/octez.connect-dapp'
 import { Subscription } from 'rxjs'
 import { map } from 'rxjs/operators'
 
-import { BeaconService } from '../../../services/beacon/beacon.service'
+import { OctezConnectService } from '../../../services/octez-connect/octez-connect.service'
 import { NetworkConfig } from '../../network.config'
 import { NetworkService } from '../../services/network.service'
 import { TestRunnerService } from '../../services/test-runner.service'
@@ -34,7 +34,7 @@ export class TestCardComponent implements OnInit, OnDestroy {
   constructor(
     private readonly testRunner: TestRunnerService,
     private readonly networkService: NetworkService,
-    private readonly beaconService: BeaconService
+    private readonly octezConnectService: OctezConnectService
   ) {}
 
   public ngOnInit(): void {
@@ -50,7 +50,7 @@ export class TestCardComponent implements OnInit, OnDestroy {
     )
 
     this.subs.add(
-      this.beaconService.activeAccount$.subscribe((a) => {
+      this.octezConnectService.activeAccount$.subscribe((a) => {
         this.account = a
       })
     )

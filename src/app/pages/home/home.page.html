@@ -18,7 +18,7 @@
         <ion-button (click)="askForPermissions()">Connect Wallet</ion-button>
       </ion-col>
       <ion-col>
-        <img src="assets/img/beacon_illu_hero.svg" />
+        <img src="assets/img/hero.svg" />
       </ion-col>
     </ion-row>
     <ion-row class="ion-padding-bottom">
@@ -62,76 +62,9 @@
               requests of the dApp are sent to the wallet, signed and returned to the application.
             </p>
           </ion-col>
-          <ion-col size="12" offset-md="1" size-md="5" class="ion-no-padding">
-            <a href="https://youtu.be/-BrRTlgza10" target="_blank" rel="noopener">
-              <img src="assets/img/beacon_video_preview.png" />
-              <ion-button expand="block">Play Video</ion-button>
-            </a>
-          </ion-col>
         </ion-row>
       </ion-col>
     </ion-row>
-    <!--
-    <ion-row class="ion-padding-bottom" id="approach">
-      <ion-col size="12" size-md="6" class="ion-no-padding ion-padding-vertical">
-        <h2>Approach</h2>
-        <p>
-          Beacon supports various wallets ranging from Browser Extensions to mobile, desktop, web and hardware wallets.
-        </p>
-      </ion-col>
-      <ion-col size="12" class="ion-no-padding">
-        <ion-row class="selection--container">
-          <ion-col size="12" size-md="6">
-            <ion-card class="ion-no-margin">
-              <ion-card-header>
-                <img src="assets/img/beacon_extension.svg" />
-                <ion-card-title>Browser Extension</ion-card-title>
-              </ion-card-header>
-              <ion-card-content>
-                <p>The Beacon browser extension is responsible for the communication with the dApp and the wallet.</p>
-              </ion-card-content>
-              <div class="ion-margin">
-                <a href="https://github.com/airgap-it/beacon-extension/releases" target="_blank" rel="noopener">
-                  <ion-button>
-                    Download Extension
-                  </ion-button>
-                </a>
-                <a href="https://youtu.be/Ws_1U6ioG8s" target="_blank" rel="noopener">
-                  <ion-button fill="outline">
-                    Video
-                  </ion-button>
-                </a>
-              </div>
-            </ion-card>
-          </ion-col>
-          <ion-col size="12" size-md="6">
-            <ion-card class="ion-no-margin">
-              <ion-card-header>
-                <img src="assets/img/beacon_dapp.svg" />
-                <ion-card-title>
-                  dApp Integration
-                </ion-card-title>
-              </ion-card-header>
-              <ion-card-content>
-                <p>
-                  With the implementation of the beacon-sdk, the dApp can also support direct connections. The user has
-                  to scan the pairing qr with his wallet for each dApp.
-                </p>
-              </ion-card-content>
-              <div class="ion-margin">
-                <ion-button (click)="askForPermissions()">Connect Beacon</ion-button>
-                <a href="https://youtu.be/-BrRTlgza10" target="_blank" rel="noopener">
-                  <ion-button fill="outline">
-                    Video
-                  </ion-button>
-                </a>
-              </div>
-            </ion-card>
-          </ion-col>
-        </ion-row>
-      </ion-col>
-    </ion-row>
-    -->
     <ion-row class="ion-padding-bottom integration--container" id="wallets_dapps">
       <ion-col size="12" size-md="6" class="ion-no-padding ion-padding-vertical">
         <h2>Wallets & dApps</h2>
@@ -150,52 +83,44 @@
             <strong>Wallets</strong>
           </ion-col>
           <ion-col size="12" size-md="4">
-            <beacon-supporting-project-item
-              [logo]="'airgap_logo.svg'"
-              [description]="'<strong>AirGap</strong> makes self custody  simple and secure. Protect your crypto and store your private keys offline. It’s time to set up your safe place for your coins and get rewards.'"
-              [btnLink]="'https://airgap.it/'"
-              [btnDescription]="'Download'"
-            ></beacon-supporting-project-item>
-          </ion-col>
-          <ion-col size="12" size-md="4">
-            <beacon-supporting-project-item
+            <app-supporting-project-item
               [logo]="'galleon_logo.png'"
               [description]="'<strong>Galleon</strong> is a deployment of Tezori, an open source wallet framework for Teups wallets, supporting both software and hardware wallets in eight languages on Mac, Windows, and Linux.'"
               [btnLink]="'https://github.com/Cryptonomic/Deployments/wiki/Galleon:-Releases'"
               [btnDescription]="'Download'"
-            ></beacon-supporting-project-item>
+            ></app-supporting-project-item>
           </ion-col>
           <ion-col size="12" size-md="4">
-            <beacon-supporting-project-item
+            <app-supporting-project-item
               [logo]="'kukai.jpg'"
               [description]="'<strong>Kukai</strong> is a Tezos web wallet based on three principles: Security, Community and Reliability. Kukai supports DirectAuth, Ledger hardware wallets and local secret option.'"
               [btnLink]="'https://kukai.app/'"
               [btnDescription]="'Open'"
-            ></beacon-supporting-project-item>
+            ></app-supporting-project-item>
           </ion-col>
           <ion-col size="12" size-md="4">
-            <beacon-supporting-project-item
+            <app-supporting-project-item
               [logo]="'ledger_logo.svg'"
               [description]="'Communication with <strong>Ledger</strong> hardware wallets is natively supported in <strong>Kukai, Spire or Thanos</strong>, allowing any operation to be signed with a Ledger hardware wallet.'"
               [btnLink]="'https://chrome.google.com/webstore/detail/gpfndedineagiepkpinficbcbbgjoenn'"
               [btnDescription]="'Download'"
-            ></beacon-supporting-project-item>
+            ></app-supporting-project-item>
           </ion-col>
           <ion-col size="12" size-md="4">
-            <beacon-supporting-project-item
+            <app-supporting-project-item
               [logo]="'spire_logo.svg'"
               [description]="'<strong>Spire</strong> is a Browser Extension wallet that supports signing with a local private key, Ledger hardware wallets and the connection to other wallets like AirGap or Kukai.'"
               [btnLink]="'https://chrome.google.com/webstore/detail/gpfndedineagiepkpinficbcbbgjoenn'"
               [btnDescription]="'Download'"
-            ></beacon-supporting-project-item>
+            ></app-supporting-project-item>
           </ion-col>
           <ion-col size="12" size-md="4">
-            <beacon-supporting-project-item
+            <app-supporting-project-item
               [logo]="'thanos.svg'"
               [description]="'<strong>Thanos</strong> is a cryptocurrency wallet for Tezos blockchain as Web Extension for your Browser. An easy-to-use browser extension wallet for interacting with Tezos ecosystem.'"
               [btnLink]="'https://thanoswallet.com/'"
               [btnDescription]="'Download'"
-            ></beacon-supporting-project-item>
+            ></app-supporting-project-item>
           </ion-col>
         </ion-row>
         <ion-row class="ion-padding-top">
@@ -203,52 +128,52 @@
             <strong>dApps</strong>
           </ion-col>
           <ion-col size="12" size-md="4">
-            <beacon-supporting-project-item
-              [logo]="'beacon_logoy_type_hor_padding.svg'"
+            <app-supporting-project-item
+              [logo]="'octez_connect_logo.png'"
               [description]="'This website is the <strong>octez.connect Example dApp</strong> that showcases various interactions with the octez.connect SDK. The code is open source and available on GitHub.'"
               [btnLink]="'https://github.com/trilitech/octez.connect-example-dapp'"
               [btnDescription]="'Open'"
-            ></beacon-supporting-project-item>
+            ></app-supporting-project-item>
           </ion-col>
           <ion-col size="12" size-md="4">
-            <beacon-supporting-project-item
+            <app-supporting-project-item
               [title]="'Better Call Dev'"
               [description]="'<strong>Better Call Dev</strong> is a detailed Tezos smart contract explorer to inspect each contract call and allows you to run contract interactions directly from the Better Call Dev website.'"
               [btnLink]="'https://better-call.dev/'"
               [btnDescription]="'Open'"
-            ></beacon-supporting-project-item>
+            ></app-supporting-project-item>
           </ion-col>
           <ion-col size="12" size-md="4">
-            <beacon-supporting-project-item
+            <app-supporting-project-item
               [logo]="'dexter_logo.svg'"
               [description]="'<strong>Dexter</strong> is a decentralized, non-custodial exchange on the Tezos blockchain that enables users to exchange their XTZ with other tokens built on the Tezos FA1.2 token standard.'"
               [btnLink]="'https://app.dexter.exchange/'"
               [btnDescription]="'Open'"
-            ></beacon-supporting-project-item>
+            ></app-supporting-project-item>
           </ion-col>
           <ion-col size="12" size-md="4">
-            <beacon-supporting-project-item
+            <app-supporting-project-item
               [logo]="'minitez.png'"
               [description]="'<strong>MiniTez Store</strong> is a minimalistic token on Tezos to learn Michelson smart contract developemt and token contract best practice by building your own token by Claude Barde.'"
               [btnLink]="'https://minitez.netlify.app/'"
               [btnDescription]="'Open'"
-            ></beacon-supporting-project-item>
+            ></app-supporting-project-item>
           </ion-col>
           <ion-col size="12" size-md="4">
-            <beacon-supporting-project-item
+            <app-supporting-project-item
               [logo]="'tezblock_logo.svg'"
               [description]="'<strong>tezblock</strong> is a Tezos block explorer focused on the end user and accessibility of the Tezos blockchain data. Users can directly delegate on tezblock to any baker.'"
               [btnLink]="'https://tezblock.io'"
               [btnDescription]="'Open'"
-            ></beacon-supporting-project-item>
+            ></app-supporting-project-item>
           </ion-col>
           <ion-col size="12" size-md="4">
-            <beacon-supporting-project-item
+            <app-supporting-project-item
               [logo]="'tezos-domains_logo.svg'"
               [description]="'<strong>Tezos Domains</strong> is a distributed, open and extensible naming system using Tezos blockchain. The main function is to translate a meaningful and user-friendly alias to a Tezos address and vice versa.'"
               [btnLink]="'https://docs.tezos.domains/'"
               [btnDescription]="'Open'"
-            ></beacon-supporting-project-item>
+            ></app-supporting-project-item>
           </ion-col>
         </ion-row>
         <ion-row class="ion-padding-top">
@@ -256,12 +181,12 @@
             <strong>Libraries</strong>
           </ion-col>
           <ion-col size="12" size-md="4">
-            <beacon-supporting-project-item
+            <app-supporting-project-item
               [logo]="'taquito.png'"
               [description]="'<strong>Taquito</strong> is a TypeScript library suite for development on the Tezos blockchain, for smart contract interactions. Supports Beacon in the Taquito Wallet API.'"
               [btnLink]="'https://tezostaquito.io/'"
               [btnDescription]="'Open'"
-            ></beacon-supporting-project-item>
+            ></app-supporting-project-item>
           </ion-col>
         </ion-row>
       </ion-col>
@@ -274,14 +199,14 @@
           <a href="https://gitlab.com/tzip/tzip/tree/master/proposals/tzip-10" target="_blank" rel="noopener">
             tzip-10
           </a>
-          Beacon utilizes a peer to peer network built with the
+          octez.connect utilizes a peer to peer network built with the
           <a href="https://matrix.org/" target="_blank" rel="noopener">matrix protocol</a>
           to transport messages from the dApps to the Wallets thus leveraging a decentralized approach.
         </p>
       </ion-col>
       <ion-col size="12" class="ion-no-padding">
         <ion-row class="ion-padding-top">
-          <ion-col class="ion-no-padding"><img src="assets/img/beacon_transport.png" /></ion-col>
+          <ion-col class="ion-no-padding"><img src="assets/img/transport.png" /></ion-col>
         </ion-row>
       </ion-col>
     </ion-row>
@@ -529,28 +454,8 @@
           </ion-card-content>
         </ion-card>
       </ion-col>
-      <ion-col size="12" size-md="6" class="ion-no-padding">
-        <p class="ion-padding-top">
-          <strong>Tipping</strong>
-        </p>
-        <p>
-          Prompts the wallet with a spend operation to a pre-defined addres, in this case an address owned by AirGap.
-        </p>
-      </ion-col>
       <ion-col size="12" size-md="9" class="ion-no-padding">
-        <ion-card class="ion-no-margin">
-          <ion-card-content>
-            <ion-card-subtitle>
-              Tippinng Details
-            </ion-card-subtitle>
-            <ion-item lines="none" class="ion-no-padding ion-padding-bottom">
-              <ion-label position="stacked">Amount in XTZ</ion-label>
-              <ion-input [(ngModel)]="tippingAmount" placeholder="1"></ion-input>
-            </ion-item>
-            <ion-button (click)="tip()">Tip us</ion-button>
-          </ion-card-content>
-        </ion-card>
-        <beacon-sample-contract></beacon-sample-contract>
+        <app-sample-contract></app-sample-contract>
       </ion-col>
     </ion-row>
 

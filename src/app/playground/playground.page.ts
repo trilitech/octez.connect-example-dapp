@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core'
 
-import { BeaconService } from '../services/beacon/beacon.service'
+import { OctezConnectService } from '../services/octez-connect/octez-connect.service'
 import { SdkLoaderService } from './services/sdk-loader.service'
 import { TestRunnerService } from './services/test-runner.service'
 import { CATEGORY_META, CATEGORY_ORDER, TESTS_BY_CATEGORY } from './tests'
@@ -22,16 +22,16 @@ export class PlaygroundPage implements OnInit {
   public readonly runProgress$ = this.testRunner.runProgress$
 
   constructor(
-    private readonly beaconService: BeaconService,
+    private readonly octezConnectService: OctezConnectService,
     private readonly sdkLoader: SdkLoaderService,
     private readonly testRunner: TestRunnerService
   ) {}
 
   public async ngOnInit(): Promise<void> {
     try {
-      await this.beaconService.whenReady()
+      await this.octezConnectService.whenReady()
     } catch (err) {
-      console.error('Playground: BeaconService failed to initialize', err)
+      console.error('Playground: OctezConnectService failed to initialize', err)
     }
     const active = this.sdkLoader.getActiveVersion()
     this.sdkVersion = active.version

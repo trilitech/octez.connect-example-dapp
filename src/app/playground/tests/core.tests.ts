@@ -33,9 +33,9 @@ const sendTez: TestDefinition = {
     const amount = String(ctx.inputs['amount'] ?? '0')
 
     const op: TxOp = { kind: 'transaction', amount, destination }
-    // Per Beacon SDK 4.x: the `network` field is rejected on request inputs.
+    // Per octez.connect SDK 4.x: the `network` field is rejected on request inputs.
     // The client's construction-time network is the source of truth and is
-    // kept in sync with the active network by BeaconService.reinitClient().
+    // kept in sync with the active network by OctezConnectService.reinitClient().
     const request = { operationDetails: [op] }
     const response = await ctx.client.requestOperation(request as any)
     const txHash = (response as { transactionHash?: string })?.transactionHash

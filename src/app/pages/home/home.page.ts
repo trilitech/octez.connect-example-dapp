@@ -5,7 +5,7 @@ import { AlertController, IonContent, ToastController } from '@ionic/angular'
 import { asyncScheduler, Observable } from 'rxjs'
 import { switchMap, throttleTime } from 'rxjs/operators'
 
-import { BeaconService } from '../../services/beacon/beacon.service'
+import { OctezConnectService } from '../../services/octez-connect/octez-connect.service'
 import { ScrollService } from '../../services/scroll/scroll.service'
 import { SdkLoaderService } from '../../playground/services/sdk-loader.service'
 import { NETWORKS, NetworkName } from '../../playground/network.config'
@@ -36,8 +36,6 @@ export class HomePage {
 
   public delegationAddress: string = 'tz1MJx9vhaNRSimcuXPK2rW4fLccQnDAnVKJ'
 
-  public tippingAmount: string = '1'
-
   public rawOperationRequest: string = `[
     {
       "kind": "transaction",
@@ -62,14 +60,14 @@ export class HomePage {
 
   constructor(
     private readonly alertController: AlertController,
-    private readonly beaconService: BeaconService,
+    private readonly octezConnectService: OctezConnectService,
     private readonly route: ActivatedRoute,
     private readonly scrollService: ScrollService,
     private readonly toastController: ToastController,
     private readonly sdkLoader: SdkLoaderService
   ) {
     this.sdkVersion = this.sdkLoader.getActiveVersion().version
-    this.activeAccount$ = this.beaconService.activeAccount$
+    this.activeAccount$ = this.octezConnectService.activeAccount$
     this.activeAccount$.subscribe((activeAccount: AccountInfo | undefined) => {
       this.activeAccount = activeAccount
     })
@@ -86,12 +84,12 @@ export class HomePage {
       this.scrollTo(element).catch(console.error)
     })
 
-    this.beaconService
+    this.octezConnectService
       .whenReady()
       .then(() => {
         // The loaded version may resolve to a CDN version or the bundled fallback.
         this.sdkVersion = this.sdkLoader.getActiveVersion().version
-        return this.beaconService.client.beaconId
+        return this.octezConnectService.client.beaconId
       })
       .then((beaconId: string) => {
         this.sdkBeaconId = beaconId
@@ -102,19 +100,19 @@ export class HomePage {
   public async askForPermissions(): Promise<void> {
     // Bug fix (US1 / FR-002): no-op when an active account already exists.
     // `connect` only reinits + requests permissions when there's no active account.
-    await this.beaconService.connect(this.selectedNetwork, this.networkName, this.networkRpcUrl)
+    await this.octezConnectService.connect(this.selectedNetwork, this.networkName, this.networkRpcUrl)
   }
 
   public async showConnectedAccounts(): Promise<void> {
-    this.connectedAccounts = await this.beaconService.client.getAccounts()
+    this.connectedAccounts = await this.octezConnectService.client.getAccounts()
   }
 
   public async activateAccount(accountInfo: AccountInfo): Promise<void> {
-    await this.beaconService.client.setActiveAccount(accountInfo)
+    await this.octezConnectService.client.setActiveAccount(accountInfo)
   }
 
   public async disconnectAccount(accountIdentifier: string): Promise<void> {
-    await this.beaconService.client.removeAccount(accountIdentifier)
+    await this.octezConnectService.client.removeAccount(accountIdentifier)
     await this.showConnectedAccounts()
   }
 
@@ -166,24 +164,6 @@ export class HomePage {
     toast.present()
   }
 
-  public async tip(): Promise<void> {
-    const amount: number = parseFloat(this.tippingAmount) * 1000000
-    if (isNaN(amount)) {
-      return this.showAlertWithBlockExplorerLink('Error', 'Amount is invalid')
-    }
-
-    return this.requestOperationWithAlert(
-      [
-        {
-          kind: 'transaction',
-          amount: amount.toString(),
-          destination: 'tz1hrHoK11TBz3HwWD2YZyZVWUyAg44h3eqd'
-        }
-      ],
-      'Thanks for your tip!'
-    )
-  }
-
   public async delegate(): Promise<void> {
     return this.requestOperationWithAlert(
       [{ kind: 'delegation', delegate: this.delegationAddress }],
@@ -225,8 +205,8 @@ export class HomePage {
     // hex with UTF-8 byte length, pass an explicit signingType, and route to the
     // active account's address as sourceAddress.
     const built = buildSignPayload(this.unsignedPayload)
-    await this.beaconService.whenReady()
-    await this.beaconService.client.requestSignPayload({
+    await this.octezConnectService.whenReady()
+    await this.octezConnectService.client.requestSignPayload({
       payload: built.payload,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       signingType: built.signingType as any,
@@ -239,7 +219,7 @@ export class HomePage {
       throw new Error('No active account set')
     }
 
-    await this.beaconService.client.requestBroadcast({
+    await this.octezConnectService.client.requestBroadcast({
       network: this.activeAccount.network,
       signedTransaction: this.broadcastTransaction
     })
@@ -291,7 +271,7 @@ export class HomePage {
     }
 
     try {
-      await this.beaconService.client.requestOperation({
+      await this.octezConnectService.client.requestOperation({
         operationDetails: operations as any
       })
     } catch (e) {

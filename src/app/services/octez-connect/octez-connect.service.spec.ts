@@ -1,11 +1,11 @@
-// Multi-network (octez.connect v5) behaviour of BeaconService, tested against
+// Multi-network (octez.connect v5) behaviour of OctezConnectService, tested against
 // a fake SDK module so no wallet/transport is needed. The fake mirrors the
 // v5 surface the service touches: DAppClient with requestPermissions({networks})
 // materialising one account per CAIP-2 chain id, getAccounts, requestOperation.
 
 import { BUILTIN_NETWORKS } from '../../playground/network.config'
 import { NetworkService } from '../../playground/services/network.service'
-import { BeaconService } from './beacon.service'
+import { OctezConnectService } from './octez-connect.service'
 
 const MULTI_NETWORK_KEY = 'octez.connect.multi-network-session'
 
@@ -100,15 +100,15 @@ function fakeLoader(version: string) {
   }
 }
 
-async function makeService(version: string): Promise<{ service: BeaconService; networkService: NetworkService }> {
+async function makeService(version: string): Promise<{ service: OctezConnectService; networkService: NetworkService }> {
   const networkService = new NetworkService()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const service = new BeaconService(fakeLoader(version) as any, networkService)
+  const service = new OctezConnectService(fakeLoader(version) as any, networkService)
   await service.whenReady()
   return { service, networkService }
 }
 
-describe('BeaconService (multi-network, octez.connect v5)', () => {
+describe('OctezConnectService (multi-network, octez.connect v5)', () => {
   beforeEach(() => {
     FakeDAppClient.instances = []
     FakeDAppClient.storedAccounts = []

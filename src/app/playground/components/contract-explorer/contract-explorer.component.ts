@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core'
 import type { AccountInfo } from '@tezos-x/octez.connect-dapp'
 import { Subscription } from 'rxjs'
 
-import { BeaconService } from '../../../services/beacon/beacon.service'
+import { OctezConnectService } from '../../../services/octez-connect/octez-connect.service'
 import { getExplorerLinkForTxHash } from '../../../utils/explorer'
 import { NetworkConfig } from '../../network.config'
 import { EntrypointDescriptor, IndexerService } from '../../services/indexer.service'
@@ -85,7 +85,7 @@ export class ContractExplorerComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly indexerService: IndexerService,
-    private readonly beaconService: BeaconService,
+    private readonly octezConnectService: OctezConnectService,
     private readonly networkService: NetworkService
   ) {}
 
@@ -94,7 +94,7 @@ export class ContractExplorerComponent implements OnInit, OnDestroy {
     // Seed the KT1 with the active network's counter default, if any.
     this.kt = this.network.contractDefaults['counter'] ?? ''
     this.subs.add(this.networkService.active$.subscribe((cfg) => (this.network = cfg)))
-    this.subs.add(this.beaconService.activeAccount$.subscribe((a) => (this.account = a)))
+    this.subs.add(this.octezConnectService.activeAccount$.subscribe((a) => (this.account = a)))
   }
 
   public ngOnDestroy(): void {
@@ -183,8 +183,8 @@ export class ContractExplorerComponent implements OnInit, OnDestroy {
 
     this.invoking = true
     try {
-      await this.beaconService.whenReady()
-      const response = await this.beaconService.client.requestOperation({
+      await this.octezConnectService.whenReady()
+      const response = await this.octezConnectService.client.requestOperation({
         operationDetails: [op]
       } as any)
       this.txHash = (response as { transactionHash?: string })?.transactionHash

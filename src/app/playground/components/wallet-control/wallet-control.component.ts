@@ -3,7 +3,7 @@ import type { AccountInfo } from '@tezos-x/octez.connect-dapp'
 import { ActionSheetController, AlertController, ToastController } from '@ionic/angular'
 import { Subscription } from 'rxjs'
 
-import { BeaconService } from '../../../services/beacon/beacon.service'
+import { OctezConnectService } from '../../../services/octez-connect/octez-connect.service'
 import { NetworkConfig, NetworkName } from '../../network.config'
 import { NetworkService } from '../../services/network.service'
 import {
@@ -50,7 +50,7 @@ export class WalletControlComponent implements OnInit, OnDestroy {
   private readonly subs = new Subscription()
 
   constructor(
-    private readonly beaconService: BeaconService,
+    private readonly octezConnectService: OctezConnectService,
     private readonly networkService: NetworkService,
     private readonly testRunner: TestRunnerService,
     private readonly sdkLoader: SdkLoaderService,
@@ -61,7 +61,7 @@ export class WalletControlComponent implements OnInit, OnDestroy {
     this.activeNetwork = this.networkService.getActive()
     this.activeVersion = this.sdkLoader.getActiveVersion()
     this.multiNetworkSupported = supportsMultiNetwork(this.activeVersion.version)
-    this.multiNetworkSession = this.beaconService.isMultiNetworkSession()
+    this.multiNetworkSession = this.octezConnectService.isMultiNetworkSession()
     // Reflect the running version in the dropdown; an unknown (custom) version
     // selects the "Other" option and pre-fills the free-form field.
     if (SUPPORTED_VERSIONS.includes(this.activeVersion.version)) {
@@ -75,12 +75,12 @@ export class WalletControlComponent implements OnInit, OnDestroy {
 
   public ngOnInit(): void {
     this.subs.add(
-      this.beaconService.activeAccount$.subscribe((a) => {
+      this.octezConnectService.activeAccount$.subscribe((a) => {
         this.account = a
       })
     )
     this.subs.add(
-      this.beaconService.connectionStatus$.subscribe((s) => {
+      this.octezConnectService.connectionStatus$.subscribe((s) => {
         this.connectionStatus = s
       })
     )
@@ -102,9 +102,9 @@ export class WalletControlComponent implements OnInit, OnDestroy {
       })
     )
     this.subs.add(
-      this.beaconService.multiNetworkAccounts$.subscribe((accounts) => {
+      this.octezConnectService.multiNetworkAccounts$.subscribe((accounts) => {
         this.multiNetworkAccounts = accounts
-        this.multiNetworkSession = this.beaconService.isMultiNetworkSession()
+        this.multiNetworkSession = this.octezConnectService.isMultiNetworkSession()
       })
     )
   }
@@ -143,7 +143,7 @@ export class WalletControlComponent implements OnInit, OnDestroy {
     this.connecting = true
     try {
       const cfg = this.activeNetwork
-      await this.beaconService.connect(cfg.sdkNetworkType, undefined, cfg.rpc)
+      await this.octezConnectService.connect(cfg.sdkNetworkType, undefined, cfg.rpc)
     } catch (err) {
       console.error('WalletControl.connect failed', err)
     } finally {
@@ -196,7 +196,7 @@ export class WalletControlComponent implements OnInit, OnDestroy {
     this.connecting = true
     try {
       const wanted = this.networks.filter((n) => names.includes(n.name) && !!n.chainId)
-      const accounts = await this.beaconService.connectMultiNetwork(wanted)
+      const accounts = await this.octezConnectService.connectMultiNetwork(wanted)
       if (accounts.length < wanted.length) {
         await this.toast(
           `Wallet granted ${accounts.length} of ${wanted.length} requested networks ` +
@@ -226,7 +226,7 @@ export class WalletControlComponent implements OnInit, OnDestroy {
 
   public async disconnect(): Promise<void> {
     try {
-      await this.beaconService.disconnect()
+      await this.octezConnectService.disconnect()
     } catch (err) {
       console.error('WalletControl.disconnect failed', err)
     }
@@ -236,7 +236,7 @@ export class WalletControlComponent implements OnInit, OnDestroy {
     if (!next || next === this.networkService.getSelected()) return
     this.switching = true
     try {
-      // The single DAppClient stays intact. BeaconService subscribes to
+      // The single DAppClient stays intact. OctezConnectService subscribes to
       // `networkService.selected$` and swaps which account is active via
       // setActiveAccount — pairings on the previous network remain in
       // storage and reappear when the user toggles back.

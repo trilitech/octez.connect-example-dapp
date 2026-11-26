@@ -1,7 +1,7 @@
 import { Component, OnInit, Input } from '@angular/core'
 
 @Component({
-  selector: 'beacon-supporting-project-item',
+  selector: 'app-supporting-project-item',
   templateUrl: './supporting-project-item.component.html',
   styleUrls: ['./supporting-project-item.component.scss']
 })

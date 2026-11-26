@@ -2,11 +2,11 @@ import type { AccountInfo, OperationResponseOutput } from '@tezos-x/octez.connec
 import { HttpClient } from '@angular/common/http'
 import { Component } from '@angular/core'
 import { Observable } from 'rxjs'
-import { BeaconService } from 'src/app/services/beacon/beacon.service'
+import { OctezConnectService } from 'src/app/services/octez-connect/octez-connect.service'
 import { ToastController } from '@ionic/angular'
 
 @Component({
-  selector: 'beacon-sample-contract',
+  selector: 'app-sample-contract',
   templateUrl: './sample-contract.component.html',
   styleUrls: ['./sample-contract.component.scss']
 })
@@ -24,10 +24,10 @@ export class SampleContractComponent {
 
   constructor(
     private readonly http: HttpClient,
-    private readonly beaconService: BeaconService,
+    private readonly octezConnectService: OctezConnectService,
     private readonly toastController: ToastController
   ) {
-    this.activeAccount$ = this.beaconService.activeAccount$
+    this.activeAccount$ = this.octezConnectService.activeAccount$
     this.activeAccount$.subscribe((activeAccount: AccountInfo | undefined) => {
       this.activeAccount = activeAccount
     })
@@ -64,8 +64,8 @@ export class SampleContractComponent {
       throw new Error('No active account set!')
     }
 
-    await this.beaconService.whenReady()
-    const response: OperationResponseOutput = await this.beaconService.client.requestOperation({
+    await this.octezConnectService.whenReady()
+    const response: OperationResponseOutput = await this.octezConnectService.client.requestOperation({
       operationDetails: [
         {
           kind: 'transaction',
@@ -88,8 +88,8 @@ export class SampleContractComponent {
       throw new Error('No active account set!')
     }
 
-    await this.beaconService.whenReady()
-    const response: OperationResponseOutput = await this.beaconService.client.requestOperation({
+    await this.octezConnectService.whenReady()
+    const response: OperationResponseOutput = await this.octezConnectService.client.requestOperation({
       operationDetails: [
         {
           kind: 'transaction',

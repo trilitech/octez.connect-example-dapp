@@ -1,12 +1,12 @@
-# Beacon Example dApp
+# octez.connect Example dApp
 
 > Connect Wallets with dApps on Tezos
 
-[Beacon](https://walletbeacon.io) is the implementation of the wallet interaction standard [tzip-10](https://gitlab.com/tzip/tzip/blob/master/proposals/tzip-10/tzip-10.md) which describes the connnection of a dApp with a wallet.
+[octez.connect](https://octez-connect.tezos.com/) is the implementation of the wallet interaction standard [tzip-10](https://gitlab.com/tzip/tzip/blob/master/proposals/tzip-10/tzip-10.md) which describes the connnection of a dApp with a wallet.
 
 ## Intro
 
-The Beacon Example dApp is the reference implementation of a dApp that uses the [beacon-sdk](https://github.com/airgap-it/beacon-sdk) with various examples of the different message types, it also acts as the landing page for beacon.
+The `octez.connect` Example dApp is the reference implementation of a dApp that uses the [octez-connect](https://github.com/trilitech/octez.connect) with various examples of the different message types, it also acts as the landing page for `octez.connect`.
 
 ## Build
 
@@ -25,7 +25,7 @@ $ ionic serve
 
 ## Security
 
-If you discover a security vulnerability within this application, please send an e-mail to hi@airgap.it. All security vulnerabilities will be promptly addressed.
+If you discover a security vulnerability, please report it privately via [GitHub security advisories](https://github.com/trilitech/octez.connect/security/advisories/new). Please don't open a public issue.
 
 ## Testing multi-network (octez.connect v5)
 
@@ -72,4 +72,3 @@ Clear these keys in DevTools (Application → Local Storage) to reset the playgr
 ## Contributing
 
 - If you find any bugs, submit an [issue](../../issues) or open [pull-request](../../pulls), helping us catch and fix them.
-- Engage with other users and developers on the [AirGap Telegram](https://t.me/AirGap).

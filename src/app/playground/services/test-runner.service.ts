@@ -13,7 +13,7 @@ import { Injectable } from '@angular/core'
 import { ToastController } from '@ionic/angular'
 import { BehaviorSubject } from 'rxjs'
 
-import { BeaconService } from '../../services/beacon/beacon.service'
+import { OctezConnectService } from '../../services/octez-connect/octez-connect.service'
 import { getExplorerLinkForAddress, getExplorerLinkForTxHash } from '../../utils/explorer'
 import { NetworkConfig } from '../network.config'
 import { ALL_TESTS } from '../tests'
@@ -39,7 +39,7 @@ export class TestRunnerService {
   private persistenceEnabled = true
 
   constructor(
-    private readonly beaconService: BeaconService,
+    private readonly octezConnectService: OctezConnectService,
     private readonly networkService: NetworkService,
     private readonly rpc: RpcService,
     private readonly indexer: IndexerService,
@@ -68,8 +68,8 @@ export class TestRunnerService {
 
     const tests = ALL_TESTS.filter((t) => t.enabled)
 
-    await this.beaconService.whenReady()
-    const account = await this.beaconService.client.getActiveAccount().catch(() => undefined)
+    await this.octezConnectService.whenReady()
+    const account = await this.octezConnectService.client.getActiveAccount().catch(() => undefined)
     const network = this.networkService.getActive()
     const walletAddress = account?.address
 
@@ -148,12 +148,12 @@ export class TestRunnerService {
       return stub
     }
 
-    await this.beaconService.whenReady()
-    const account = await this.beaconService.client.getActiveAccount().catch(() => undefined)
+    await this.octezConnectService.whenReady()
+    const account = await this.octezConnectService.client.getActiveAccount().catch(() => undefined)
 
     const network = this.networkService.getActive()
     const ctx: TestContext = {
-      client: this.beaconService.client,
+      client: this.octezConnectService.client,
       rpc: this.rpc,
       indexer: this.indexer,
       account: account || undefined,

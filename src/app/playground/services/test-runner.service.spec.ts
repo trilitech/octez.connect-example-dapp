@@ -6,7 +6,7 @@ import { TestRunnerService } from './test-runner.service'
 // surface of each: whenReady/client.getActiveAccount, network resolution, rpc/
 // indexer pass-through (used by the real tests), and SDK version.
 function makeRunner(): { service: TestRunnerService } {
-  const beaconService = {
+  const octezConnectService = {
     whenReady: () => Promise.resolve(),
     client: { getActiveAccount: () => Promise.resolve(undefined) }
   }
@@ -22,7 +22,7 @@ function makeRunner(): { service: TestRunnerService } {
   const toastController = { create: () => Promise.resolve({ present: () => Promise.resolve() }) }
 
   const service = new TestRunnerService(
-    beaconService as any,
+    octezConnectService as any,
     networkService as any,
     rpc as any,
     indexer as any,

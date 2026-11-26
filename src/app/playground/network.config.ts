@@ -19,7 +19,7 @@ export type ContractRole = 'counter' | 'fa2-transfer' | 'fa2-balance'
 export interface NetworkConfig {
   name: NetworkName
   // String literal passed to the SDK at client construction (per FR-054).
-  // For custom networks, pick the Beacon SDK NetworkType value that best fits —
+  // For custom networks, pick the octez.connect SDK NetworkType value that best fits —
   // commonly 'custom' so the SDK trusts the rpcUrl directly.
   sdkNetworkType: string
   rpc: string

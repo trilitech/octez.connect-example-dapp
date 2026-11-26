@@ -4,7 +4,7 @@ import { Storage } from '@ionic/storage-angular'
 import { Observable } from 'rxjs'
 
 import { HomePage } from './pages/home/home.page'
-import { BeaconService } from './services/beacon/beacon.service'
+import { OctezConnectService } from './services/octez-connect/octez-connect.service'
 import { ScrollService } from './services/scroll/scroll.service'
 import { SdkLoaderService } from './playground/services/sdk-loader.service'
 
@@ -22,26 +22,26 @@ export class AppComponent {
   // Sourced from the runtime-loaded SDK (SdkLoaderService) rather than a static
   // `SDK_VERSION` import, so the displayed version reflects the actually-loaded
   // SDK and no fixed-version runtime binding is created.
-  public beaconSdkVersion: string
+  public sdkVersion: string
 
   constructor(
-    private readonly beaconService: BeaconService,
+    private readonly octezConnectService: OctezConnectService,
     private readonly scrollService: ScrollService,
     private readonly storage: Storage,
     private readonly sdkLoader: SdkLoaderService
   ) {
-    this.beaconSdkVersion = this.sdkLoader.getActiveVersion().version
-    this.connectionStatus$ = this.beaconService.connectionStatus$
-    this.activeAccount$ = this.beaconService.activeAccount$
+    this.sdkVersion = this.sdkLoader.getActiveVersion().version
+    this.connectionStatus$ = this.octezConnectService.connectionStatus$
+    this.activeAccount$ = this.octezConnectService.activeAccount$
     this.scrollService.currentSelectedTab$.subscribe((currentTab: string) => {
       this.selectedTab = currentTab
     })
     // Refresh once the SDK has finished loading (version may resolve to the
     // bundled fallback or a CDN-loaded version).
-    this.beaconService
+    this.octezConnectService
       .whenReady()
       .then(() => {
-        this.beaconSdkVersion = this.sdkLoader.getActiveVersion().version
+        this.sdkVersion = this.sdkLoader.getActiveVersion().version
       })
       .catch(() => undefined)
   }
@@ -56,8 +56,8 @@ export class AppComponent {
   }
 
   public async reset(): Promise<void> {
-    await this.beaconService.whenReady()
-    await this.beaconService.client.removeAllPeers()
+    await this.octezConnectService.whenReady()
+    await this.octezConnectService.client.removeAllPeers()
     await this.storage.clear()
     location.reload()
   }

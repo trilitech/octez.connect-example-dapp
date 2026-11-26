@@ -42,7 +42,7 @@ const MULTI_NETWORK_KEY = 'octez.connect.multi-network-session'
 @Injectable({
   providedIn: 'root'
 })
-export class BeaconService {
+export class OctezConnectService {
   // Definitely-assigned: written in `init()` and on every reinit. Callers MUST
   // `await whenReady()` before touching `client` to be safe against an
   // in-flight reinit.
@@ -81,7 +81,7 @@ export class BeaconService {
     private readonly networkService: NetworkService
   ) {
     this.chain = this.doInit().catch((err) => {
-      console.error('BeaconService.init failed', err)
+      console.error('OctezConnectService.init failed', err)
       throw err
     })
   }
@@ -104,7 +104,7 @@ export class BeaconService {
       this.chain = this.chain
         .then(() => this.doReinitForActiveNetwork())
         .catch((err) => {
-          console.error('BeaconService.reinit on selected$ failed', err)
+          console.error('OctezConnectService.reinit on selected$ failed', err)
         })
     })
   }
@@ -182,7 +182,7 @@ export class BeaconService {
     try {
       await this.client.destroy()
     } catch (err) {
-      console.warn('BeaconService.doReinitForActiveNetwork: destroy() failed', err)
+      console.warn('OctezConnectService.doReinitForActiveNetwork: destroy() failed', err)
     }
     await this.constructClientForActiveNetwork()
   }
@@ -200,7 +200,7 @@ export class BeaconService {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       accounts = (await (this.client as any).getAccounts()) ?? []
     } catch (err) {
-      console.warn('BeaconService.tryRestoreActiveForNetwork: getAccounts() failed', err)
+      console.warn('OctezConnectService.tryRestoreActiveForNetwork: getAccounts() failed', err)
     }
     this._multiNetworkAccounts$.next(
       this.isMultiNetworkSession()
@@ -212,7 +212,7 @@ export class BeaconService {
       try {
         await this.client.setActiveAccount(match)
       } catch (err) {
-        console.warn('BeaconService.tryRestoreActiveForNetwork: setActiveAccount failed', err)
+        console.warn('OctezConnectService.tryRestoreActiveForNetwork: setActiveAccount failed', err)
       }
       this._activeAccount$.next(match)
       return
@@ -284,7 +284,7 @@ export class BeaconService {
     try {
       window.localStorage.setItem(MULTI_NETWORK_KEY, 'true')
     } catch (err) {
-      console.error('BeaconService.connectMultiNetwork: localStorage write failed', err)
+      console.error('OctezConnectService.connectMultiNetwork: localStorage write failed', err)
     }
 
     // Re-hydrate: publishes multiNetworkAccounts$ and promotes the account
@@ -344,7 +344,7 @@ export class BeaconService {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await this.client.removeAccount((current as any).accountIdentifier)
       } catch (err) {
-        console.warn('BeaconService.disconnect: removeAccount failed', err)
+        console.warn('OctezConnectService.disconnect: removeAccount failed', err)
       }
     }
     this._activeAccount$.next(undefined)
@@ -372,7 +372,7 @@ export class BeaconService {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (this.client as any).removeAllAccounts()
     } catch (err) {
-      console.warn('BeaconService.disconnectAll: removeAllAccounts failed', err)
+      console.warn('OctezConnectService.disconnectAll: removeAllAccounts failed', err)
     }
     this._activeAccount$.next(undefined)
     this._connectionStatus$.next('Not connected')
@@ -397,7 +397,7 @@ export class BeaconService {
     this.chain = this.chain
       .then(() => this.doReinitForActiveNetwork())
       .catch((err) => {
-        console.error('BeaconService.reinitClient failed', err)
+        console.error('OctezConnectService.reinitClient failed', err)
       })
     await this.chain
   }
@@ -432,7 +432,7 @@ export class BeaconService {
         }
       })
     } catch (err) {
-      console.error('BeaconService.registerSubscriptions failed', err)
+      console.error('OctezConnectService.registerSubscriptions failed', err)
     }
   }
 }

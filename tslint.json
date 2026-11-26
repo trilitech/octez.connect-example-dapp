@@ -11,8 +11,8 @@
     "prettier": true,
     "strict-comparisons": true,
     "component-class-suffix": [true, "Component", "Page"],
-    "directive-selector": [true, "attribute", "airgap", "camelCase"],
-    "component-selector": [true, "element", "airgap", "kebab-case"],
+    "directive-selector": [true, "attribute", "app", "camelCase"],
+    "component-selector": [true, "element", "app", "kebab-case"],
     "semicolon": [true, "never"],
     "member-access": [true],
     "member-ordering": [
